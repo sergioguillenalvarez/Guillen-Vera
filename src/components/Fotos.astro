@@ -1,0 +1,13 @@
+---
+// Muestra las fotos reales; si aún no hay, usa fondos de ejemplo.
+import { ESCENAS } from '../lib/propiedades';
+interface Props { fotos: string[]; alt: string; max?: number; tag?: 'slide' | 'plain' }
+const { fotos, alt, max = 5, tag = 'slide' } = Astro.props;
+const items = fotos.length ? fotos.slice(0, max) : ESCENAS.slice(0, max).map((s) => `#${s}`);
+---
+{items.map((src, i) => {
+  const inner = src.startsWith('#')
+    ? <div class={`ph s-${src.slice(1)}`}></div>
+    : <img src={src} alt={`${alt} · foto ${i + 1}`} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />;
+  return tag === 'slide' ? <div class="slide">{inner}</div> : inner;
+})}

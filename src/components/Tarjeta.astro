@@ -1,0 +1,27 @@
+---
+import Fotos from './Fotos.astro';
+import { usd, diasDesde, venceExclusividad, type Propiedad } from '../lib/propiedades';
+interface Props { p: Propiedad }
+const { p } = Astro.props;
+const d = p.data;
+const n = Math.max(1, Math.min(5, d.fotos.length || 5));
+const vence = venceExclusividad(d);
+const dias = diasDesde(d.fecha_publicacion);
+---
+<a class="card reveal" href={`/propiedad/${p.id}/`} data-estado={d.estado} data-dist={d.distrito} data-ref={d.codigo.replace('-', '').toUpperCase()} data-vence={vence && d.estado !== 'Vendida' ? vence.getTime() + 86400000 : undefined} aria-label={`${d.titulo}, ${usd(d.precio)}`}>
+  <div class="photos" style={`view-transition-name: foto-${p.id}`}>
+    <div class="slides"><Fotos fotos={d.fotos} alt={d.titulo} /></div>
+    {d.estado === 'Vendida' && <span class="tag sold"><span class="dot"></span>{d.dias_en_vender ? `Vendida en ${d.dias_en_vender} días` : 'Vendida'}</span>}
+    {d.estado === 'Oportunidad' && <span class="tag opp">Oportunidad{d.precio_anterior ? ` · −${Math.round((1 - d.precio / d.precio_anterior) * 100)}%` : ''}</span>}
+    {d.estado === 'Disponible' && <span class="tag"><span class="dot"></span>{dias <= 7 ? `Nueva · hace ${dias} día${dias === 1 ? '' : 's'}` : 'Disponible'}</span>}
+    <span class="ref">{d.codigo}</span>
+    {d.ejemplo && <span class="ejemplo">Ejemplo</span>}
+    <button class="arrow l" type="button" aria-label="Foto anterior">‹</button><button class="arrow r" type="button" aria-label="Foto siguiente">›</button>
+    <div class="dots">{Array.from({ length: n }, (_, i) => <i class={i ? '' : 'on'}></i>)}</div>
+  </div>
+  <div class="cinfo">
+    <div class="cprice">{usd(d.precio)}{d.precio_anterior && <> <s style="font-size:18px;color:var(--muted)">{usd(d.precio_anterior)}</s></>}</div>
+    <div class="cfacts"><b>{d.dormitorios}</b> dorm<span class="sep">|</span><b>{d.banos}</b> baños<span class="sep">|</span><b>{d.area_techada}</b> m²{d.cocheras > 0 && <><span class="sep">|</span><b>{d.cocheras}</b> coch</>}</div>
+    <div class="caddr">{d.tipo} · {d.distrito}</div>
+  </div>
+</a>

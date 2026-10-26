@@ -1,0 +1,23 @@
+# Reconstruye la web todos los días a las 5:00 a. m. (hora de Lima),
+# así las propiedades con exclusividad vencida desaparecen solas.
+# Requiere el secreto NETLIFY_BUILD_HOOK (ver README).
+name: Reconstruir web cada día
+
+on:
+  schedule:
+    - cron: "0 10 * * *"
+  workflow_dispatch:
+
+jobs:
+  reconstruir:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pedir a Netlify que vuelva a publicar
+        env:
+          HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "Falta el secreto NETLIFY_BUILD_HOOK; no se reconstruye."
+            exit 0
+          fi
+          curl -fsS -X POST -d '{}' "$HOOK"

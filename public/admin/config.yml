@@ -1,0 +1,99 @@
+# Panel de edición de la web. Se abre en /admin
+backend:
+  name: github
+  repo: sergioguillenalvarez/Guillen-Vera
+  branch: main
+  commit_messages:
+    create: "Nueva {{collection}}: {{slug}}"
+    update: "Actualiza {{collection}}: {{slug}}"
+    delete: "Elimina {{collection}}: {{slug}}"
+
+locale: es
+media_folder: public/fotos
+public_folder: /fotos
+
+collections:
+  - name: propiedades
+    label: Propiedades
+    label_singular: Propiedad
+    folder: src/content/propiedades
+    create: true
+    slug: "{{codigo}}"
+    identifier_field: codigo
+    summary: "{{codigo}} · {{estado}} · {{distrito}} · US$ {{precio}}"
+    sortable_fields: [codigo, precio, fecha_publicacion, exclusividad_firma]
+    fields:
+      - { name: codigo, label: "Código (el que sale en el video, ej. GV-05)", widget: string, pattern: ['^GV-\d+$', 'Usa el formato GV-05'] }
+      - { name: titulo, label: Título, widget: string }
+      - { name: estado, label: Estado, widget: select, options: [Disponible, Oportunidad, Vendida], default: Disponible }
+      - { name: distrito, label: Distrito, widget: select, options: [Miraflores, Barranco, San Isidro, Surquillo, Magdalena, Lince] }
+      - { name: tipo, label: Tipo, widget: select, options: [Departamento, Dúplex, Flat, Loft, Penthouse, Casa, Oficina, Terreno], default: Departamento }
+      - { name: precio, label: "Precio (US$)", widget: number, value_type: int }
+      - { name: precio_anterior, label: "Precio anterior (US$, solo para oportunidades)", widget: number, value_type: int, required: false }
+      - { name: area_techada, label: "Área techada (m²)", widget: number, value_type: float }
+      - { name: area_ocupada, label: "Área ocupada (m²)", widget: number, value_type: float, required: false }
+      - { name: dormitorios, label: Dormitorios, widget: number, value_type: int }
+      - { name: banos, label: "Baños (medio baño = 0.5)", widget: number, value_type: float }
+      - { name: cocheras, label: Cocheras, widget: number, value_type: int, default: 0 }
+      - { name: piso, label: "Piso (ej. 9 de 14)", widget: string, required: false }
+      - { name: ascensor, label: Ascensor, widget: select, options: [Directo, Sí, No], required: false }
+      - { name: vista, label: Vista, widget: string, required: false }
+      - { name: anio, label: Año de construcción, widget: number, value_type: int, required: false }
+      - { name: mantenimiento, label: "Mantenimiento mensual (S/)", widget: number, value_type: int, required: false }
+      - { name: hipoteca_banco, label: "Banco de la hipoteca (vacío si no tiene)", widget: string, required: false }
+      - { name: sunarp, label: Inscrita en SUNARP, widget: boolean, default: true }
+      - { name: acepta_credito, label: Acepta crédito hipotecario, widget: boolean, default: true }
+      - name: fotos
+        label: "Fotos (la primera es la portada; arrastra para ordenar)"
+        widget: list
+        field: { name: foto, label: Foto, widget: image }
+      - { name: tiktok, label: "Link del video de TikTok (el link completo, con /video/…)", widget: string, required: false }
+      - { name: recorrido_youtube, label: "Recorrido completo: link de YouTube", widget: string, required: false }
+      - { name: recorrido_video, label: "Recorrido completo: o sube el video aquí", widget: file, required: false }
+      - { name: body, label: Descripción, widget: markdown, required: false }
+      - { name: fecha_publicacion, label: Fecha de publicación, widget: datetime, time_format: false, format: "YYYY-MM-DD" }
+      - { name: exclusividad_firma, label: "Exclusividad: fecha de firma", widget: datetime, time_format: false, format: "YYYY-MM-DD", required: false, hint: "Si la exclusividad vence y no se renueva, la propiedad se oculta sola de la web." }
+      - { name: exclusividad_meses, label: "Exclusividad: meses de vigencia", widget: number, value_type: int, required: false }
+      - name: renovaciones
+        label: Renovaciones de exclusividad
+        label_singular: renovación
+        widget: list
+        required: false
+        hint: "Usa 'Agregar renovación' para extender la vigencia. Se suma a los meses originales."
+        fields:
+          - { name: fecha, label: Fecha de renovación, widget: datetime, time_format: false, format: "YYYY-MM-DD" }
+          - { name: meses, label: Meses, widget: select, options: [{ label: "3 meses", value: 3 }, { label: "6 meses", value: 6 }, { label: "12 meses", value: 12 }] }
+      - { name: dias_en_vender, label: "Días que tomó venderla (solo vendidas)", widget: number, value_type: int, required: false }
+      - { name: ejemplo, label: "Propiedad de ejemplo (desmarcar en las reales)", widget: boolean, default: false }
+
+  - name: preguntas
+    label: Preguntas frecuentes
+    label_singular: Pregunta
+    folder: src/content/preguntas
+    create: true
+    slug: "{{pregunta}}"
+    identifier_field: pregunta
+    summary: "{{orden}}. {{pregunta}}"
+    sortable_fields: [orden]
+    fields:
+      - { name: pregunta, label: Pregunta, widget: string }
+      - { name: orden, label: "Orden (1 sale primero)", widget: number, value_type: int, default: 10 }
+      - { name: body, label: Respuesta, widget: markdown }
+
+  - name: ajustes
+    label: Ajustes generales
+    files:
+      - name: ajustes
+        label: Textos y contacto
+        file: src/data/ajustes.json
+        format: json
+        fields:
+          - { name: nombre_catalogo, label: Nombre del catálogo, widget: string }
+          - { name: marca, label: Marca, widget: string }
+          - { name: subtitulo, label: Texto de portada, widget: text }
+          - { name: whatsapp_sergio, label: "WhatsApp de Sergio (con 51, sin + ni espacios)", widget: string }
+          - { name: whatsapp_tatiana, label: "WhatsApp de Tatiana (con 51, sin + ni espacios)", widget: string }
+          - { name: instagram_sergio, label: Instagram de Sergio, widget: string, required: false }
+          - { name: instagram_tatiana, label: Instagram de Tatiana, widget: string, required: false }
+          - { name: tiktok_sergio, label: TikTok de Sergio, widget: string, required: false }
+          - { name: tiktok_tatiana, label: TikTok de Tatiana, widget: string, required: false }
