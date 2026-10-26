@@ -1,0 +1,147 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Tarjeta from '../components/Tarjeta.astro';
+import ajustes from '../data/ajustes.json';
+import { propiedadesPublicas } from '../lib/propiedades';
+
+const props = await propiedadesPublicas();
+const preguntas = (await getCollection('preguntas')).sort((a, b) => a.data.orden - b.data.orden);
+const respuestas = await Promise.all(preguntas.map(async (q) => ({ q, Content: (await render(q)).Content })));
+
+const DISTRITOS = ['Miraflores', 'Barranco', 'San Isidro', 'Surquillo', 'Magdalena', 'Lince'];
+const vendidas = props.filter((p) => p.data.estado === 'Vendida');
+const conDias = vendidas.filter((p) => p.data.dias_en_vender);
+const promedio = conDias.length ? Math.round(conDias.reduce((s, p) => s + p.data.dias_en_vender!, 0) / conDias.length) : 0;
+const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
+---
+<Base hayEjemplos={props.some((p) => p.data.ejemplo)}>
+  <main class="wrap">
+    <header class="hero">
+      <div class="eyebrow">Sergio Guillen · Tatiana Vera · Lima</div>
+      <h1><span class="line"><span>{linea1}</span></span>{resto.length > 0 && <span class="line"><span class="sun" style="font-style:italic">{resto.join(' ')}</span></span>}</h1>
+      <div class="sub">
+        <p>{ajustes.subtitulo}</p>
+        <label class="search" for="q">
+          <input id="q" placeholder="Busca por código del video, ej. GV-01" autocomplete="off" />
+          <span class="pillbtn solid">Buscar</span>
+        </label>
+      </div>
+    </header>
+  </main>
+
+  <div class="marquee" aria-hidden="true"><div class="track">{[...DISTRITOS, ...DISTRITOS].map((d) => <span>{d}</span>)}</div></div>
+
+  <main class="wrap">
+    <div class="bar">
+      <div class="seg" id="seg" role="group" aria-label="Estado">
+        <span class="knob"></span>
+        <button type="button" data-v="Disponible" aria-pressed="true">Disponibles</button>
+        <button type="button" data-v="Oportunidad" aria-pressed="false">Oportunidades</button>
+        <button type="button" data-v="Vendida" aria-pressed="false">Vendidas</button>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Distrito">
+        <button type="button" class="chip" data-v="" aria-pressed="true">Todos</button>
+        {DISTRITOS.map((d) => <button type="button" class="chip" data-v={d} aria-pressed="false">{d}</button>)}
+      </div>
+    </div>
+
+    <div class="grid" id="grid">
+      {props.map((p) => <Tarjeta p={p} />)}
+      <p class="note" id="vacio" style="padding-block:40px" hidden>No encontramos propiedades con ese filtro o código.</p>
+    </div>
+
+    <section class="stats">
+      <div class="stat reveal"><b data-n={vendidas.length}>{vendidas.length}</b><span>propiedades vendidas</span></div>
+      {promedio > 0 && <div class="stat reveal"><b data-n={promedio}>{promedio}</b><span>días promedio hasta la venta</span></div>}
+      <div class="stat reveal"><b data-n="2">2</b><span>marcas personales difundiendo cada propiedad</span></div>
+      <div class="stat reveal"><b data-n="6">6</b><span>distritos donde trabajamos</span></div>
+    </section>
+
+    <section class="owners reveal" id="propietarios"><div class="in">
+      <div class="eyebrow">Para propietarios</div>
+      <h2>Tu propiedad, más allá de los portales.</h2>
+      <div class="steps">
+        <div><b>Su propia página</b><p>Fotos profesionales, video recorrido, precio y estado legal. Sin tus datos personales ni la dirección exacta.</p></div>
+        <div><b>Dos audiencias a la vez</b><p>La publicamos en el TikTok e Instagram de Sergio y de Tatiana, y en esta cartera que reciben nuestros clientes e inversionistas.</p></div>
+        <div><b>Interesados que llegan decididos</b><p>Quien nos escribe ya vio todo. Llega a WhatsApp listo para visitar y negociar, no a preguntar lo básico.</p></div>
+      </div>
+      <a class="pillbtn" href={`https://wa.me/${ajustes.whatsapp_sergio}?text=${encodeURIComponent('Hola, quiero vender mi propiedad')}`} target="_blank" rel="noopener">Quiero vender mi propiedad →</a>
+    </div></section>
+
+    <section class="faq" id="preguntas">
+      <div class="intro reveal">
+        <div class="eyebrow">Preguntas frecuentes</div>
+        <h2>Lo que todos nos preguntan.</h2>
+        <p>Si tu duda no está aquí, escríbenos por WhatsApp y te respondemos con calma.</p>
+      </div>
+      <div>
+        {respuestas.map(({ q, Content }, i) => (
+          <details class="qa" id={`faq-${q.id}`} open={i === 0}>
+            <summary>{q.data.pregunta}<span class="pm">+</span></summary>
+            <div class="ans"><Content /></div>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const F = { estado: 'Disponible', dist: '', q: '' };
+    const seg = document.getElementById('seg')!, knob = seg.querySelector<HTMLElement>('.knob')!;
+    const chips = document.getElementById('chips')!, grid = document.getElementById('grid')!, vacio = document.getElementById('vacio')!;
+
+    function moveKnob() {
+      const b = seg.querySelector<HTMLElement>('[aria-pressed="true"]')!;
+      knob.style.left = b.offsetLeft + 'px';
+      knob.style.width = b.offsetWidth + 'px';
+    }
+    function aplicar() {
+      let n = 0;
+      grid.querySelectorAll<HTMLElement>('.card').forEach((c) => {
+        const ok = F.q
+          ? c.dataset.ref!.includes(F.q)
+          : c.dataset.estado === F.estado && (!F.dist || c.dataset.dist === F.dist);
+        c.hidden = !ok;
+        if (ok) n++;
+      });
+      vacio.hidden = n > 0;
+    }
+    seg.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button');
+      if (!b) return;
+      F.estado = b.dataset.v!;
+      seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      moveKnob(); aplicar();
+    });
+    chips.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+      if (!b) return;
+      F.dist = b.dataset.v!;
+      chips.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      aplicar();
+    });
+    document.getElementById('q')!.addEventListener('input', (e) => {
+      F.q = (e.target as HTMLInputElement).value.toUpperCase().replace(/[\s-]/g, '');
+      aplicar();
+    });
+
+    // carrusel de fotos dentro de cada tarjeta
+    grid.querySelectorAll<HTMLElement>('.slides').forEach((s) => s.addEventListener('scroll', () => {
+      const i = Math.round(s.scrollLeft / s.clientWidth);
+      s.parentElement!.querySelectorAll('.dots i').forEach((d, j) => d.classList.toggle('on', i === j));
+    }, { passive: true }));
+    grid.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest<HTMLElement>('.arrow');
+      if (!a) return;
+      e.preventDefault();
+      const s = a.parentElement!.querySelector<HTMLElement>('.slides')!;
+      s.scrollBy({ left: (a.classList.contains('r') ? 1 : -1) * s.clientWidth, behavior: 'smooth' });
+    });
+
+    aplicar();
+    requestAnimationFrame(moveKnob);
+    addEventListener('resize', moveKnob);
+    document.fonts?.ready.then(moveKnob);
+  </script>
+</Base>

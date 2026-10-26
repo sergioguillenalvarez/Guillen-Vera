@@ -1,0 +1,131 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Fotos from '../../components/Fotos.astro';
+import WaIcon from '../../components/WaIcon.astro';
+import ajustes from '../../data/ajustes.json';
+import { propiedadesPublicas, usd, cuotaMensual, tiktokId, youtubeId, venceExclusividad, type Propiedad } from '../../lib/propiedades';
+
+export async function getStaticPaths() {
+  const props = await propiedadesPublicas();
+  return props.map((p) => ({ params: { slug: p.id }, props: { p } }));
+}
+
+const { p } = Astro.props as { p: Propiedad };
+const d = p.data;
+const { Content } = await render(p);
+const vendida = d.estado === 'Vendida';
+const tt = tiktokId(d.tiktok);
+const yt = youtubeId(d.recorrido_youtube);
+const tieneRecorrido = Boolean(yt || d.recorrido_video);
+const vence = venceExclusividad(d);
+const msg = encodeURIComponent(`Hola, vi en su página el ${d.tipo.toLowerCase()} ${d.codigo} en ${d.distrito} (${usd(d.precio)}) y quiero más información.`);
+const wa = (n: string) => `https://wa.me/${n}?text=${msg}`;
+const portada = d.fotos[0];
+---
+<Base title={`${d.tipo} en ${d.distrito} · ${usd(d.precio)}`} description={d.titulo} image={portada}>
+  <div class="wrap">
+    <div style="padding-top:16px"><a class="pillbtn" href="/">← Todas las propiedades</a></div>
+
+    {vence && !vendida && (
+      <div class="no-disp" data-vence={vence.getTime() + 86400000} hidden style="margin-top:16px">
+        Esta propiedad ya no está en nuestra cartera. <a href="/">Mira las disponibles</a>.
+      </div>
+    )}
+
+    <div class="mosaic" style={`view-transition-name: foto-${p.id}`}>
+      <Fotos fotos={d.fotos} alt={d.titulo} tag="plain" />
+    </div>
+
+    <div class="dgrid">
+      <div style="min-width:0">
+        <div class="dhead">
+          <div class="eyebrow">{d.codigo} · {d.tipo} · {d.distrito}{vendida ? ` · Vendida${d.dias_en_vender ? ` en ${d.dias_en_vender} días` : ''}` : d.estado === 'Oportunidad' ? ' · Oportunidad' : ''}{d.ejemplo ? ' · Ejemplo' : ''}</div>
+          <div class="dprice">{usd(d.precio)}</div>
+          {d.precio_anterior && <div class="note" style="font-size:14px">Antes {usd(d.precio_anterior)} · ahorro de {usd(d.precio_anterior - d.precio)}</div>}
+          <h1 class="dtitle">{d.titulo}</h1>
+          <div class="kfacts">
+            <div><b>{d.dormitorios}</b><span>dormitorios</span></div>
+            <div><b>{d.banos}</b><span>baños</span></div>
+            <div><b>{d.area_techada} m²</b><span>techados</span></div>
+            <div><b>{d.cocheras}</b><span>cocheras</span></div>
+            <div><b>{usd(Math.round(d.precio / d.area_techada))}</b><span>por m²</span></div>
+          </div>
+          <div class="desc"><Content /></div>
+        </div>
+
+        {(tt || tieneRecorrido) && (
+          <div class="block">
+            <h2 style="font-family:var(--display);font-size:34px">Míralo en video</h2>
+            {tt && tieneRecorrido && (
+              <div class="tabs" role="tablist">
+                <button type="button" role="tab" aria-selected="true" data-t="tt">Video de TikTok</button>
+                <button type="button" role="tab" aria-selected="false" data-t="tour">Recorrido completo</button>
+              </div>
+            )}
+            {tt && (
+              <div class="player vert panel-v" data-p="tt">
+                <iframe src={`https://www.tiktok.com/player/v1/${tt}?description=0&music_info=0&rel=0`} title={`Video de TikTok de ${d.codigo}`} allow="fullscreen; encrypted-media; autoplay; picture-in-picture" loading="lazy"></iframe>
+              </div>
+            )}
+            {tieneRecorrido && (
+              <div class="player hor panel-v" data-p="tour" hidden={Boolean(tt)}>
+                {yt
+                  ? <iframe src={`https://www.youtube-nocookie.com/embed/${yt}?rel=0`} title={`Recorrido de ${d.codigo}`} allow="fullscreen; encrypted-media; picture-in-picture" loading="lazy"></iframe>
+                  : <video src={d.recorrido_video!} controls playsinline preload="metadata"></video>}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div class="block">
+          <h2 style="font-family:var(--display);font-size:34px">Ficha técnica</h2>
+          <div class="spec">
+            <div><span>Área techada</span><b>{d.area_techada} m²</b></div>
+            {d.area_ocupada && <div><span>Área ocupada</span><b>{d.area_ocupada} m²</b></div>}
+            {d.piso && <div><span>Piso</span><b>{d.piso}</b></div>}
+            {d.ascensor && <div><span>Ascensor</span><b>{d.ascensor}</b></div>}
+            {d.vista && <div><span>Vista</span><b>{d.vista}</b></div>}
+            {d.anio && <div><span>Año de construcción</span><b>{d.anio}</b></div>}
+            {d.mantenimiento && <div><span>Mantenimiento</span><b>S/ {d.mantenimiento} al mes</b></div>}
+            <div><span>Cocheras</span><b>{d.cocheras || 'No tiene'}</b></div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h2 style="font-family:var(--display);font-size:34px">Situación legal</h2>
+          <div class="legal">
+            <div class="lrow"><span class={`ic ${d.sunarp ? '' : 'w'}`}>{d.sunarp ? '✓' : '!'}</span><p>{d.sunarp ? 'Inscrita en SUNARP' : 'Inscripción en trámite'}<span>{d.sunarp ? 'Partida independizada a nombre del propietario.' : 'Te explicamos el estado del trámite.'}</span></p></div>
+            <div class="lrow"><span class={`ic ${d.hipoteca_banco ? 'w' : ''}`}>{d.hipoteca_banco ? '!' : '✓'}</span><p>{d.hipoteca_banco ? `Tiene hipoteca con ${d.hipoteca_banco}` : 'Sin hipoteca ni cargas'}<span>{d.hipoteca_banco ? <>Se levanta con el pago de la compraventa. Es un trámite normal y lo coordinamos nosotros. <a href="/#faq-comprar-con-hipoteca">¿Cómo funciona?</a></> : 'No figuran gravámenes en la partida.'}</span></p></div>
+            <div class="lrow"><span class="ic">✓</span><p>{d.acepta_credito ? 'Acepta crédito hipotecario' : 'Solo al contado'}<span>Te ayudamos a precalificar con el banco.</span></p></div>
+          </div>
+          <p class="note">La dirección exacta y los datos del propietario se comparten al coordinar la visita.</p>
+        </div>
+      </div>
+
+      <aside class="cta">
+        {vendida
+          ? <><div class="eyebrow">Vendida</div><b style="font-size:18px">{d.dias_en_vender ? `Se vendió en ${d.dias_en_vender} días.` : 'Esta propiedad ya se vendió.'}</b><p class="note" style="font-size:14px">¿Tienes una propiedad parecida? Te contamos cómo la trabajaríamos.</p></>
+          : <><div class="eyebrow">¿Te interesa?</div><b style="font-size:18px;line-height:1.3">Escríbenos y coordinamos tu visita.</b></>}
+        <div class="agents">
+          <a class="agent" href={wa(ajustes.whatsapp_sergio)} target="_blank" rel="noopener"><span class="av sg">S</span><div><b>Sergio Guillen</b><small>Responde por WhatsApp</small></div><span class="wa"><WaIcon /></span></a>
+          <a class="agent" href={wa(ajustes.whatsapp_tatiana)} target="_blank" rel="noopener"><span class="av tv">T</span><div><b>Tatiana Vera</b><small>Responde por WhatsApp</small></div><span class="wa"><WaIcon /></span></a>
+        </div>
+        {!vendida && d.acepta_credito && (
+          <div class="calc"><small>Cuota mensual estimada</small><b>{usd(cuotaMensual(d.precio))}</b><small>Con 20% de inicial, 20 años y TEA 8.5%. Referencial.</small></div>
+        )}
+        <p class="note">El mensaje ya incluye el código {d.codigo}, así sabemos qué propiedad viste.</p>
+      </aside>
+    </div>
+  </div>
+  {!vendida && <div class="mbar"><a class="pillbtn solid" href={wa(ajustes.whatsapp_sergio)} target="_blank" rel="noopener">Consultar por WhatsApp</a></div>}
+
+  <script>
+    document.querySelector('.tabs')?.addEventListener('click', (e) => {
+      const t = (e.target as HTMLElement).closest<HTMLElement>('button');
+      if (!t) return;
+      document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b === t)));
+      document.querySelectorAll<HTMLElement>('.panel-v').forEach((p) => (p.hidden = p.dataset.p !== t.dataset.t));
+    });
+  </script>
+</Base>
