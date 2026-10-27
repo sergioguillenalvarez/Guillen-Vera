@@ -8,6 +8,6 @@ const items = fotos.length ? fotos.slice(0, max) : ESCENAS.slice(0, max).map((s)
 {items.map((src, i) => {
   const inner = src.startsWith('#')
     ? <div class={`ph s-${src.slice(1)}`}></div>
-    : <img src={src} alt={`${alt} · foto ${i + 1}`} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />;
+    : <img src={encodeURI(src)} alt={`${alt} · foto ${i + 1}`} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />;
   return tag === 'slide' ? <div class="slide">{inner}</div> : inner;
 })}

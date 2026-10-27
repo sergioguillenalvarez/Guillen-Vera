@@ -51,6 +51,21 @@ export function tiktokId(url?: string | null) {
   return m ? m[1] : null;
 }
 
+/**
+ * Igual que tiktokId, pero también entiende los links cortos que da la app
+ * (vt.tiktok.com / vm.tiktok.com): al publicar, sigue la redirección para encontrar el número del video.
+ */
+export async function resolverTiktok(url?: string | null) {
+  const directo = tiktokId(url);
+  if (directo || !url || !/^https?:\/\/(vt|vm)\.tiktok\.com\//.test(url.trim())) return directo;
+  try {
+    const res = await fetch(url.trim(), { redirect: 'manual', headers: { 'user-agent': 'Mozilla/5.0' } });
+    return tiktokId(res.headers.get('location')) ?? tiktokId((await fetch(url.trim())).url);
+  } catch {
+    return null;
+  }
+}
+
 export function youtubeId(url?: string | null) {
   if (!url) return null;
   const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);

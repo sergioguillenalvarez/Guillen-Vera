@@ -47,7 +47,7 @@ collections:
         label: "Fotos (la primera es la portada; arrastra para ordenar)"
         widget: list
         field: { name: foto, label: Foto, widget: image }
-      - { name: tiktok, label: "Link del video de TikTok (el link completo, con /video/…)", widget: string, required: false }
+      - { name: tiktok, label: "Link del video de TikTok (el de Compartir → Copiar link sirve)", widget: string, required: false }
       - { name: recorrido_youtube, label: "Recorrido completo: link de YouTube", widget: string, required: false }
       - { name: recorrido_video, label: "Recorrido completo: o sube el video aquí", widget: file, required: false }
       - { name: body, label: Descripción, widget: markdown, required: false }

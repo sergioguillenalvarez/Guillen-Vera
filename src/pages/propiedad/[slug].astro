@@ -4,7 +4,7 @@ import Base from '../../layouts/Base.astro';
 import Fotos from '../../components/Fotos.astro';
 import WaIcon from '../../components/WaIcon.astro';
 import ajustes from '../../data/ajustes.json';
-import { propiedadesPublicas, usd, cuotaMensual, tiktokId, youtubeId, venceExclusividad, type Propiedad } from '../../lib/propiedades';
+import { propiedadesPublicas, usd, cuotaMensual, resolverTiktok, youtubeId, venceExclusividad, type Propiedad } from '../../lib/propiedades';
 
 export async function getStaticPaths() {
   const props = await propiedadesPublicas();
@@ -15,7 +15,7 @@ const { p } = Astro.props as { p: Propiedad };
 const d = p.data;
 const { Content } = await render(p);
 const vendida = d.estado === 'Vendida';
-const tt = tiktokId(d.tiktok);
+const tt = await resolverTiktok(d.tiktok);
 const yt = youtubeId(d.recorrido_youtube);
 const tieneRecorrido = Boolean(yt || d.recorrido_video);
 const vence = venceExclusividad(d);
@@ -54,6 +54,9 @@ const portada = d.fotos[0];
           <div class="desc"><Content /></div>
         </div>
 
+        {!tt && !tieneRecorrido && d.tiktok && (
+          <div class="block"><a class="pillbtn solid" style="justify-self:start" href={d.tiktok} target="_blank" rel="noopener">Ver el video en TikTok</a></div>
+        )}
         {(tt || tieneRecorrido) && (
           <div class="block">
             <h2 style="font-family:var(--display);font-size:34px">Míralo en video</h2>
