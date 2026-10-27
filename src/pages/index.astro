@@ -4,12 +4,15 @@ import Base from '../layouts/Base.astro';
 import Tarjeta from '../components/Tarjeta.astro';
 import ajustes from '../data/ajustes.json';
 import { propiedadesPublicas } from '../lib/propiedades';
+import { PRIORITARIOS, OTROS } from '../data/distritos';
 
 const props = await propiedadesPublicas();
 const preguntas = (await getCollection('preguntas')).sort((a, b) => a.data.orden - b.data.orden);
 const respuestas = await Promise.all(preguntas.map(async (q) => ({ q, Content: (await render(q)).Content })));
 
-const DISTRITOS = ['Miraflores', 'Barranco', 'San Isidro', 'Surquillo', 'Magdalena', 'Lince'];
+const DISTRITOS = [...PRIORITARIOS];
+// solo los otros distritos que hoy tienen alguna propiedad
+const otrosConPropiedades = OTROS.filter((d) => props.some((p) => p.data.distrito === d));
 const vendidas = props.filter((p) => p.data.estado === 'Vendida');
 const conDias = vendidas.filter((p) => p.data.dias_en_vender);
 const promedio = conDias.length ? Math.round(conDias.reduce((s, p) => s + p.data.dias_en_vender!, 0) / conDias.length) : 0;
@@ -43,6 +46,12 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
       <div class="chips" id="chips" role="group" aria-label="Distrito">
         <button type="button" class="chip" data-v="" aria-pressed="true">Todos</button>
         {DISTRITOS.map((d) => <button type="button" class="chip" data-v={d} aria-pressed="false">{d}</button>)}
+        {otrosConPropiedades.length > 0 && (
+          <select class="chip" id="otros" aria-label="Otros distritos">
+            <option value="">Otros distritos</option>
+            {otrosConPropiedades.map((d) => <option value={d}>{d}</option>)}
+          </select>
+        )}
       </div>
     </div>
 
@@ -114,11 +123,19 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
       seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       moveKnob(); aplicar();
     });
+    const otros = document.getElementById('otros') as HTMLSelectElement | null;
     chips.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+      const b = (e.target as HTMLElement).closest<HTMLElement>('button.chip');
       if (!b) return;
       F.dist = b.dataset.v!;
-      chips.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      chips.querySelectorAll('button.chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      if (otros) { otros.value = ''; otros.setAttribute('aria-pressed', 'false'); }
+      aplicar();
+    });
+    otros?.addEventListener('change', () => {
+      F.dist = otros.value;
+      chips.querySelectorAll('button.chip').forEach((x) => x.setAttribute('aria-pressed', String(!F.dist && x.dataset.v === '')));
+      otros.setAttribute('aria-pressed', String(Boolean(F.dist)));
       aplicar();
     });
     document.getElementById('q')!.addEventListener('input', (e) => {

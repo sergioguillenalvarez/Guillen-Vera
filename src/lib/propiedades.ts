@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { esPrioritario } from '../data/distritos';
 
 export type Propiedad = CollectionEntry<'propiedades'>;
 
@@ -28,7 +29,10 @@ export async function propiedadesPublicas() {
   const todas = await getCollection('propiedades');
   return todas
     .filter((p) => estaActiva(p.data))
-    .sort((a, b) => b.data.fecha_publicacion.getTime() - a.data.fecha_publicacion.getTime());
+    // Lima Top primero; dentro de cada grupo, lo más reciente primero
+    .sort((a, b) =>
+      Number(esPrioritario(b.data.distrito)) - Number(esPrioritario(a.data.distrito)) ||
+      b.data.fecha_publicacion.getTime() - a.data.fecha_publicacion.getTime());
 }
 
 export const usd = (n: number) => 'US$ ' + n.toLocaleString('en-US');
@@ -49,6 +53,21 @@ export function tiktokId(url?: string | null) {
   if (!url) return null;
   const m = url.match(/video\/(\d+)/) ?? url.match(/^(\d{15,})$/);
   return m ? m[1] : null;
+}
+
+/**
+ * Igual que tiktokId, pero también entiende los links cortos que da la app
+ * (vt.tiktok.com / vm.tiktok.com): al publicar, sigue la redirección para encontrar el número del video.
+ */
+export async function resolverTiktok(url?: string | null) {
+  const directo = tiktokId(url);
+  if (directo || !url || !/^https?:\/\/(vt|vm)\.tiktok\.com\//.test(url.trim())) return directo;
+  try {
+    const res = await fetch(url.trim(), { redirect: 'manual', headers: { 'user-agent': 'Mozilla/5.0' } });
+    return tiktokId(res.headers.get('location')) ?? tiktokId((await fetch(url.trim())).url);
+  } catch {
+    return null;
+  }
 }
 
 export function youtubeId(url?: string | null) {
