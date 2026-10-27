@@ -26,7 +26,7 @@ collections:
       - { name: codigo, label: "Código (el que sale en el video, ej. GV-05)", widget: string, pattern: ['^GV-\d+$', 'Usa el formato GV-05'] }
       - { name: titulo, label: Título, widget: string }
       - { name: estado, label: Estado, widget: select, options: [Disponible, Oportunidad, Vendida], default: Disponible }
-      - { name: distrito, label: Distrito, widget: select, options: [Miraflores, Barranco, San Isidro, Surquillo, Magdalena, Lince] }
+      - { name: distrito, label: Distrito, widget: select, options: [Miraflores, Barranco, San Isidro, Surquillo, Magdalena, Lince, Santiago de Surco, San Borja, La Molina, Jesús María, Pueblo Libre, San Miguel, Chorrillos, Lima Cercado, Breña, La Victoria, Rímac, San Juan de Miraflores, Villa María del Triunfo, Villa El Salvador, Ate, Santa Anita, El Agustino, San Juan de Lurigancho, Los Olivos, San Martín de Porres, Independencia, Comas, Carabayllo, Puente Piedra, Cieneguilla, Pachacámac, Lurín, Punta Hermosa, Punta Negra, San Bartolo, Asia, Callao, Bellavista, La Perla, La Punta], hint: "Los seis primeros son Lima Top y salen primero en la web." }
       - { name: tipo, label: Tipo, widget: select, options: [Departamento, Dúplex, Flat, Loft, Penthouse, Casa, Oficina, Terreno], default: Departamento }
       - { name: precio, label: "Precio (US$)", widget: number, value_type: int }
       - { name: precio_anterior, label: "Precio anterior (US$, solo para oportunidades)", widget: number, value_type: int, required: false }

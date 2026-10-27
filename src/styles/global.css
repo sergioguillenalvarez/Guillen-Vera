@@ -238,3 +238,5 @@ a.card{text-decoration:none;color:inherit}
 @view-transition{navigation:auto}
 ::view-transition-group(*){animation-duration:.55s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
 @media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
+select.chip{appearance:none;-webkit-appearance:none;color:var(--ink);font-family:var(--body);padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+select.chip[aria-pressed="true"]{background-color:var(--ink);color:var(--bg)}

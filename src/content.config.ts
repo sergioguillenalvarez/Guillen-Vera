@@ -1,8 +1,8 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { TODOS } from './data/distritos';
 
-const DISTRITOS = ['Miraflores', 'Barranco', 'San Isidro', 'Surquillo', 'Magdalena', 'Lince'] as const;
 
 const propiedades = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/propiedades' }),
@@ -10,7 +10,7 @@ const propiedades = defineCollection({
     codigo: z.string(),
     titulo: z.string(),
     estado: z.enum(['Disponible', 'Oportunidad', 'Vendida']),
-    distrito: z.enum(DISTRITOS),
+    distrito: z.enum(TODOS),
     tipo: z.string(),
     precio: z.number(),
     precio_anterior: z.number().optional().nullable(),

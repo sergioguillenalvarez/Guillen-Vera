@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { esPrioritario } from '../data/distritos';
 
 export type Propiedad = CollectionEntry<'propiedades'>;
 
@@ -28,7 +29,10 @@ export async function propiedadesPublicas() {
   const todas = await getCollection('propiedades');
   return todas
     .filter((p) => estaActiva(p.data))
-    .sort((a, b) => b.data.fecha_publicacion.getTime() - a.data.fecha_publicacion.getTime());
+    // Lima Top primero; dentro de cada grupo, lo más reciente primero
+    .sort((a, b) =>
+      Number(esPrioritario(b.data.distrito)) - Number(esPrioritario(a.data.distrito)) ||
+      b.data.fecha_publicacion.getTime() - a.data.fecha_publicacion.getTime());
 }
 
 export const usd = (n: number) => 'US$ ' + n.toLocaleString('en-US');
