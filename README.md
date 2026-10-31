@@ -49,3 +49,21 @@ En **Ajustes generales** se cambian el nombre del catálogo, la marca y la lista
 npm install
 npm run dev
 ```
+
+## Proyectos con hoja de precios (Google Sheets)
+
+La web puede leer la lista de precios que comparte la inmobiliaria y actualizarse sola cada día.
+De la hoja solo se toman: tipo, piso, modelo, dormitorios, vista, área y **precio de lista**, y solo las
+unidades en estado **Disponible**. El precio piso, los descuentos y el número de unidad nunca se publican.
+
+1. En Google Sheets, la hoja debe estar compartida como "Cualquier persona con el enlace puede ver".
+   Si el proyecto tiene varias pestañas, copia el link estando en la pestaña correcta (lleva `#gid=…`).
+2. En Netlify: **Project configuration → Environment variables → Add a variable**.
+   - Key: `HOJA_BLUE` (HOJA_ + una clave corta del proyecto)
+   - Value: el link de la hoja
+3. En el panel, en la propiedad del proyecto, escribe `BLUE` en "clave de la hoja de precios".
+4. En "modelos / tipologías" agrega una fila por modelo con su letra (A, B, C…), fotos, plano, baños y cocheras.
+   Área, pisos, vista y precio salen de la hoja.
+
+El link va en Netlify y no en el panel porque este repositorio es público. Si la hoja no se puede leer,
+la publicación se detiene y la web sigue mostrando la última versión correcta.

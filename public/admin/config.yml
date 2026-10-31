@@ -41,7 +41,7 @@ collections:
       - { name: ascensor, label: Ascensor, widget: select, options: [Directo, Sí, No], required: false }
       - { name: vista, label: Vista, widget: string, required: false }
       - { name: anio, label: Año de construcción, widget: number, value_type: int, required: false }
-      - { name: mantenimiento, label: "Mantenimiento mensual (S/)", widget: number, value_type: int, required: false }
+      - { name: mantenimiento, label: "Mantenimiento mensual (S/, propiedades sueltas)", widget: number, value_type: int, required: false }
       - { name: hipoteca_banco, label: "Banco de la hipoteca (vacío si no tiene)", widget: string, required: false }
       - { name: sunarp, label: Inscrita en SUNARP, widget: boolean, default: true }
       - { name: acepta_credito, label: Acepta crédito hipotecario, widget: boolean, default: true }
@@ -49,23 +49,36 @@ collections:
         label: "Fotos (la primera es la portada; arrastra para ordenar)"
         widget: list
         field: { name: foto, label: Foto, widget: image }
-      - { name: entrega, label: "Proyectos: entrega (ej. Estreno, Junio 2027, En planos)", widget: string, required: false }
+      - { name: etapa, label: "Proyecto: etapa", widget: select, options: ["Entrega inmediata", "En construcción", "En planos"], required: false }
+      - { name: entrega, label: "Proyecto: fecha de entrega (ej. Junio 2027)", widget: string, required: false, hint: "Solo si está en construcción o en planos." }
+      - { name: estreno, label: "Proyecto: departamentos de estreno", widget: boolean, default: false, required: false }
+      - { name: sin_alcabala, label: "Proyecto: no paga alcabala", widget: boolean, default: false, required: false }
+      - { name: bancos, label: "Proyecto: bancos con los que se puede financiar", widget: list, required: false, hint: "Ej. Interbank. Déjalo vacío si se acepta cualquier banco." }
+      - { name: carta_fianza, label: "Proyecto: con otros bancos se pide carta fianza", widget: boolean, default: false, required: false }
+      - { name: mantenimiento_nota, label: "Proyecto: mantenimiento (ej. US$ 1 por m² al mes)", widget: string, required: false }
+      - { name: tipo_cambio, label: "Proyecto: tipo de cambio para mostrar el precio aproximado en dólares (ej. 3.75)", widget: number, value_type: float, required: false, hint: "Solo si los precios están en soles." }
+      - { name: hoja_precios, label: "Proyecto: clave de la hoja de precios (ej. BLUE)", widget: string, required: false, hint: "Escribe una clave corta y guarda el link de la hoja en Netlify como variable HOJA_BLUE (ver la guía). Así los precios se actualizan solos cada día y el link no queda público." }
       - name: tipologias
-        label: "Proyectos: tipologías (si llenas esto, la propiedad se muestra como proyecto)"
-        label_singular: tipología
+        label: "Proyecto: modelos / tipologías (si llenas esto, la propiedad se muestra como proyecto)"
+        label_singular: modelo
         widget: list
         required: false
-        summary: "{{fields.nombre}} · {{fields.dormitorios}} dorm · {{fields.area}} m² · US$ {{fields.precio}}"
+        hint: "Con hoja de precios: basta con la letra del modelo, fotos, baños y cochera; el área, los pisos, la vista y el precio salen de la hoja. Sin hoja: llena todo a mano."
+        summary: "{{fields.modelo}} {{fields.nombre}} · {{fields.dormitorios}} dorm"
         fields:
-          - { name: nombre, label: "Nombre (ej. Tipo A, Flat 2D)", widget: string }
-          - { name: dormitorios, label: Dormitorios, widget: number, value_type: int }
-          - { name: banos, label: Baños, widget: number, value_type: float, required: false }
-          - { name: area, label: "Área (m²)", widget: number, value_type: float }
-          - { name: precio, label: "Precio desde", widget: number, value_type: int }
-          - { name: pisos, label: "Pisos disponibles (ej. 3, 5, 7 al 9)", widget: string, required: false }
-          - { name: unidades, label: Unidades disponibles, widget: number, value_type: int, required: false }
-          - { name: agotada, label: Agotada, widget: boolean, default: false }
+          - { name: modelo, label: "Modelo (la letra o código de la hoja, ej. A)", widget: string, required: false }
+          - { name: nombre, label: "Nombre para la web (opcional, ej. Flat 1 dormitorio)", widget: string, required: false }
+          - { name: fotos, label: "Fotos del modelo", widget: image, multiple: true, required: false }
           - { name: plano, label: Plano, widget: image, required: false }
+          - { name: banos, label: Baños, widget: number, value_type: float, required: false }
+          - { name: cochera, label: "Cocheras incluidas (0 si no tiene)", widget: number, value_type: int, required: false }
+          - { name: dormitorios, label: "Dormitorios (sin hoja)", widget: number, value_type: int, required: false }
+          - { name: area, label: "Área m² (sin hoja)", widget: number, value_type: float, required: false }
+          - { name: precio, label: "Precio desde (sin hoja)", widget: number, value_type: int, required: false }
+          - { name: pisos, label: "Pisos disponibles (sin hoja, ej. 3, 5, 7 al 9)", widget: string, required: false }
+          - { name: vista, label: "Vista (sin hoja)", widget: string, required: false }
+          - { name: unidades, label: "Unidades disponibles (sin hoja)", widget: number, value_type: int, required: false }
+          - { name: agotada, label: "Agotado (sin hoja)", widget: boolean, default: false, required: false }
       - { name: ubicacion, label: "Ubicación (marca el punto; en la web solo se ve un círculo de la zona)", widget: map, required: false }
       - { name: referencia, label: "Referencia de la zona (ej. Parque Kennedy)", widget: string, required: false }
       - { name: tiktok, label: "Link del video de TikTok (el de Compartir → Copiar link sirve)", widget: string, required: false }

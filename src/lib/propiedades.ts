@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { esPrioritario } from '../data/distritos';
+import { leerHoja, linkDeHoja, listaPisos, type Unidad } from './hoja';
 
 export type Propiedad = CollectionEntry<'propiedades'>;
 
@@ -25,8 +26,54 @@ export function estaActiva(p: Propiedad['data'], hoy = new Date()) {
   return !vence || vence.getTime() + DIA > hoy.getTime();
 }
 
-export async function propiedadesPublicas() {
-  const todas = await getCollection('propiedades');
+type Tipologia = Propiedad['data']['tipologias'][number];
+
+/**
+ * Junta las tipologías del panel (nombre, fotos, plano, cochera…) con la hoja de precios:
+ * de la hoja salen los modelos disponibles, sus áreas, vistas, pisos y el precio de lista más bajo.
+ */
+export function unirConHoja(tipos: Tipologia[], unidades: Unidad[]): Tipologia[] {
+  const porModelo = new Map<string, Unidad[]>();
+  for (const u of unidades) porModelo.set(u.modelo, [...(porModelo.get(u.modelo) ?? []), u]);
+  const clave = (t: Tipologia) => (t.modelo ?? t.nombre ?? '').trim().toUpperCase().replace(/^(MODELO|TIPO|TIPOLOGIA|TIPOLOGÍA)\s+/, '');
+  const panel = new Map(tipos.map((t) => [clave(t), t]));
+  const modelos = [...new Set([...porModelo.keys(), ...panel.keys()])].filter(Boolean);
+  return modelos.map((m) => {
+    const t = panel.get(m);
+    const us = porModelo.get(m) ?? [];
+    const areas = us.map((u) => u.area);
+    return {
+      ...(t ?? { banos: null, cochera: null, vista: null, plano: null, fotos: [] }),
+      nombre: t?.nombre || `Modelo ${m}`,
+      modelo: m,
+      dormitorios: us[0]?.dormitorios || t?.dormitorios || 0,
+      area: areas.length ? Math.min(...areas) : (t?.area ?? 0),
+      area_max: areas.length ? Math.max(...areas) : (t?.area_max ?? null),
+      precio: us.length ? Math.min(...us.map((u) => u.precio)) : (t?.precio ?? 0),
+      pisos: us.length ? listaPisos(us.flatMap((u) => (u.piso ? [u.piso] : []))) : (t?.pisos ?? null),
+      unidades: us.length,
+      vistas: [...new Set(us.map((u) => u.vista).filter(Boolean))],
+      agotada: us.length === 0,
+    };
+  });
+}
+
+let publicas: Promise<Propiedad[]> | undefined;
+
+export function propiedadesPublicas() {
+  return (publicas ??= cargarPublicas());
+}
+
+async function cargarPublicas() {
+  const todas = await Promise.all((await getCollection('propiedades')).map(async (p) => {
+    const link = linkDeHoja(p.data.hoja_precios);
+    let tipologias = link ? unirConHoja(p.data.tipologias, await leerHoja(link)) : p.data.tipologias;
+    // Tipologías sin precio (ni hoja) no se muestran; a las demás se les asegura un nombre
+    tipologias = tipologias
+      .filter((t) => t.precio > 0)
+      .map((t) => ({ ...t, nombre: t.nombre || (t.modelo ? `Modelo ${t.modelo}` : `${t.dormitorios} dormitorios`) }));
+    return { ...p, data: { ...p.data, tipologias } } as Propiedad;
+  }));
   return todas
     .filter((p) => estaActiva(p.data))
     // Lima Top primero; dentro de cada grupo, lo más reciente primero
@@ -51,7 +98,12 @@ export function precioBase(p: Propiedad['data']): number {
 }
 
 export function dinero(n: number, moneda: 'USD' | 'PEN' = 'USD') {
-  return (moneda === 'PEN' ? 'S/ ' : 'US$ ') + n.toLocaleString('en-US');
+  return (moneda === 'PEN' ? 'S/ ' : 'US$ ') + Math.round(n).toLocaleString('en-US');
+}
+
+/** Si la propiedad está en soles y tiene tipo de cambio: "≈ US$ 120,059" */
+export function enDolares(n: number, p: Propiedad['data']) {
+  return p.moneda === 'PEN' && p.tipo_cambio ? `≈ ${dinero(n / p.tipo_cambio, 'USD')}` : null;
 }
 
 /** "US$ 485,000", "Desde US$ 116,000" o "S/ 3,500 al mes" */

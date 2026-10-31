@@ -9,7 +9,7 @@ import SolicitudVisita from '../../components/SolicitudVisita.astro';
 import { asesores, waLink } from '../../lib/marca';
 import {
   propiedadesPublicas, dinero, cuotaMensual, resolverTiktok, youtubeId, venceExclusividad, cerrada, esProyecto,
-  precioBase, precioTexto, tipologiasDisponibles, enumerar, rango, ubicacionAproximada, type Propiedad,
+  precioBase, precioTexto, tipologiasDisponibles, enumerar, rango, ubicacionAproximada, enDolares, type Propiedad,
 } from '../../lib/propiedades';
 
 export async function getStaticPaths() {
@@ -33,6 +33,7 @@ const punto = ubicacionAproximada(d.ubicacion, d.codigo);
 const queEs = proyecto ? 'proyecto' : d.tipo.toLowerCase();
 const msg = `Hola, vi en su página el ${queEs} ${d.codigo} en ${d.distrito} (${precioTexto(d)}) y quiero más información.`;
 const portada = d.fotos[0];
+const enumerarTexto = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} o ${xs.at(-1)}` : xs[0]);
 const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` en ${d.dias_en_vender} días` : ''}` : d.estado === 'Alquilada' ? ' · Alquilada' : d.estado === 'Oportunidad' ? ' · Oportunidad' : '';
 ---
 <Base title={`${proyecto ? 'Proyecto' : d.tipo} en ${d.distrito} · ${precioTexto(d)}`} description={d.titulo} image={portada}>
@@ -54,14 +55,15 @@ const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` 
         <div class="dhead">
           <div class="eyebrow">{d.codigo} · {proyecto ? 'Proyecto' : d.tipo} · {d.distrito}{alquiler ? ' · Alquiler' : ''}{estadoTexto}{d.ejemplo ? ' · Ejemplo' : ''}</div>
           <div class="dprice">{proyecto && <span class="desde" style="font-size:16px">Desde</span>}{dinero(precio, d.moneda)}{alquiler && <span class="desde" style="font-size:16px"> al mes</span>}</div>
+          {enDolares(precio, d) && <div class="note" style="font-size:14px">{enDolares(precio, d)} · precio de lista</div>}
           {d.precio_anterior && <div class="note" style="font-size:14px">Antes {dinero(d.precio_anterior, d.moneda)} · ahorro de {dinero(d.precio_anterior - precio, d.moneda)}</div>}
           <h1 class="dtitle">{d.titulo}</h1>
           {proyecto
             ? <div class="kfacts">
                 <div><b>{enumerar(tips.map((t) => t.dormitorios))}</b><span>dormitorios</span></div>
                 <div><b>{rango(tips.map((t) => t.area))} m²</b><span>áreas</span></div>
-                <div><b>{d.tipologias.length}</b><span>tipologías</span></div>
-                {d.entrega && <div><b>{d.entrega}</b><span>entrega</span></div>}
+                <div><b>{tips.length}</b><span>modelos</span></div>
+                {(d.etapa || d.entrega) && <div><b>{d.etapa === 'Entrega inmediata' ? 'Inmediata' : d.entrega || d.etapa}</b><span>entrega</span></div>}
               </div>
             : <div class="kfacts">
                 {d.dormitorios != null && <div><b>{d.dormitorios}</b><span>dormitorios</span></div>}
@@ -127,7 +129,20 @@ const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` 
                 <div class="lrow"><span class="ic">3</span><p>Buen historial crediticio<span>Revisamos tu reporte en centrales de riesgo antes de firmar.</span></p></div>
               </div>
             </div>
-          : !proyecto && <div class="block">
+          : proyecto ? <div class="block">
+              <h2 style="font-family:var(--display);font-size:34px">El proyecto</h2>
+              <div class="legal">
+                {(d.etapa || d.entrega) && <div class="lrow"><span class="ic">✓</span><p>{d.etapa === 'Entrega inmediata' ? 'Entrega inmediata' : `${d.etapa ?? 'Entrega'}${d.entrega ? ` · entrega ${d.entrega}` : ''}`}<span>{d.etapa === 'Entrega inmediata' ? 'Firmas y recibes tu departamento terminado.' : 'Te contamos el avance de obra y el cronograma de pagos.'}</span></p></div>}
+                {d.estreno && <div class="lrow"><span class="ic">✓</span><p>Departamentos de estreno<span>Nadie los ha habitado antes.</span></p></div>}
+                {d.sin_alcabala && <div class="lrow"><span class="ic">✓</span><p>No pagas alcabala<span>Es la primera venta, directa de la inmobiliaria.</span></p></div>}
+                {d.bancos.length > 0
+                  ? <div class="lrow"><span class="ic">✓</span><p>Crédito hipotecario con {enumerarTexto(d.bancos)}<span>{d.carta_fianza ? <>Es el banco aliado del proyecto. Con otro banco se pide carta fianza. <a href="/#faq-carta-fianza">¿Qué es?</a></> : 'Te ayudamos a precalificar.'}</span></p></div>
+                  : <div class="lrow"><span class="ic">✓</span><p>{d.acepta_credito ? 'Acepta crédito hipotecario de cualquier banco' : 'Solo al contado'}<span>Te ayudamos a precalificar con el banco.</span></p></div>}
+                {d.mantenimiento_nota && <div class="lrow"><span class="ic">i</span><p>Mantenimiento: {d.mantenimiento_nota}<span>Referencial, lo fija la junta de propietarios.</span></p></div>}
+              </div>
+              <p class="note">La dirección exacta se comparte al coordinar la visita.</p>
+            </div>
+          : <div class="block">
               <h2 style="font-family:var(--display);font-size:34px">Situación legal</h2>
               <div class="legal">
                 <div class="lrow"><span class={`ic ${d.sunarp ? '' : 'w'}`}>{d.sunarp ? '✓' : '!'}</span><p>{d.sunarp ? 'Inscrita en SUNARP' : 'Inscripción en trámite'}<span>{d.sunarp ? 'Partida independizada a nombre del propietario.' : 'Te explicamos el estado del trámite.'}</span></p></div>

@@ -4,6 +4,11 @@ import { z } from 'astro/zod';
 import { TODOS } from './data/distritos';
 
 
+// Los campos que el panel puede dejar vacíos (null) se convierten a su valor por defecto
+const num0 = z.number().nullish().transform((v) => v ?? 0);
+const lista = z.array(z.string()).nullish().transform((v) => v ?? []);
+const no = z.boolean().nullish().transform((v) => v ?? false);
+
 const propiedades = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/propiedades' }),
   schema: z.object({
@@ -31,18 +36,34 @@ const propiedades = defineCollection({
     sunarp: z.boolean().default(true),
     acepta_credito: z.boolean().default(true),
     fotos: z.array(z.string()).default([]),
-    // Proyectos: una fila por tipología
+    // Proyectos: una fila por tipología (modelo)
     entrega: z.string().optional().nullable(),
+    etapa: z.string().optional().nullable(),
+    estreno: z.boolean().optional().nullable(),
+    sin_alcabala: z.boolean().optional().nullable(),
+    bancos: lista,
+    carta_fianza: no,
+    mantenimiento_nota: z.string().optional().nullable(),
+    tipo_cambio: z.number().optional().nullable(),
+    // Clave de la hoja de precios (ej. BLUE → variable HOJA_BLUE en Netlify)
+    hoja_precios: z.string().optional().nullable(),
     tipologias: z.array(z.object({
-      nombre: z.string(),
-      dormitorios: z.number(),
+      nombre: z.string().optional().nullable(),
+      modelo: z.string().optional().nullable(),
+      dormitorios: num0,
       banos: z.number().optional().nullable(),
-      area: z.number(),
-      precio: z.number(),
+      area: num0,
+      precio: num0,
       pisos: z.string().optional().nullable(),
       unidades: z.number().optional().nullable(),
-      agotada: z.boolean().default(false),
+      agotada: no,
+      cochera: z.number().optional().nullable(),
+      vista: z.string().optional().nullable(),
       plano: z.string().optional().nullable(),
+      fotos: lista,
+      // Lo completa la hoja de precios al publicar
+      area_max: z.number().optional().nullable(),
+      vistas: lista,
     })).default([]),
     // Ubicación aproximada: "lat, lng" o el punto que guarda el mapa del panel
     ubicacion: z.string().optional().nullable(),
