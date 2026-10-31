@@ -8,6 +8,9 @@ const alquiler = d.operacion === 'Alquiler';
 const tips = d.tipologias.filter((t) => !t.agotada);
 const garantia = d.garantia_meses ?? 2;
 const adelanto = d.adelanto_meses ?? 1;
+const HORAS = ['9:00', '10:00', '11:00', '12:00', '1:00', '2:00', '3:00', '4:00', '5:00', '6:00', '7:00'].map(
+  (h, i) => `${h} ${i < 3 ? 'a. m.' : i === 3 ? 'm.' : 'p. m.'}`,
+);
 ---
 <dialog class="visita" id="visita">
   <form name="solicitud-visita" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="fvisita">
@@ -32,7 +35,9 @@ const adelanto = d.adelanto_meses ?? 1;
       <label>Celular (WhatsApp)<input name="celular" required inputmode="tel" pattern="[0-9 +]{9,15}" autocomplete="tel" /></label>
       <label class="full">Correo (opcional)<input name="correo" type="email" autocomplete="email" /></label>
       <label>Día preferido<input name="dia" type="date" required /></label>
-      <label>Horario<select name="horario"><option>Mañana</option><option>Tarde</option><option>Noche</option></select></label>
+      <label>Hora preferida<select name="horario" required>
+        {HORAS.map((h) => <option selected={h === '10:00 a. m.'}>{h}</option>)}
+      </select></label>
       {tips.length > 0 && (
         <label class="full">Tipología de interés
           <select name="tipologia" id="vtipologia">
@@ -55,6 +60,7 @@ const adelanto = d.adelanto_meses ?? 1;
         </label>
         <label class="full" id="vcredito" hidden>¿Tu crédito ya está aprobado?
           <select name="credito_estado">
+            <option value="">Elige una opción</option>
             <option>Sí, tengo la aprobación o precalificación</option>
             <option>Está en evaluación</option>
             <option>Aún no lo solicito</option>
@@ -92,19 +98,26 @@ const adelanto = d.adelanto_meses ?? 1;
       <label class="check full"><input type="checkbox" name="consentimiento" value="Sí" required /> Acepto que {ajustes.marca} use estos datos solo para coordinar mi visita y evaluar mi solicitud (Ley 29733).</label>
     </div>
 
-    <button type="submit" class="pillbtn solid vsend">Enviar solicitud</button>
-    <p class="note verror" hidden>No pudimos enviar la solicitud. Revisa tu conexión o escríbenos por WhatsApp.</p>
+    {asesores.length > 1 ? (
+      <fieldset class="vasesor">
+        <legend>¿Con quién quieres coordinar?</legend>
+        {asesores.map((a, i) => (
+          <label><input type="radio" name="asesor" value={a.nombre} data-wa={a.whatsapp} checked={i === 0} required /><span class="av">{a.nombre[0]}</span><b>{a.nombre}</b></label>
+        ))}
+      </fieldset>
+    ) : (
+      <input type="hidden" name="asesor" value={asesores[0]?.nombre} data-wa={asesores[0]?.whatsapp} />
+    )}
+
+    <button type="submit" class="pillbtn solid vsend">Enviar solicitud por WhatsApp</button>
+    <p class="note">Se abrirá WhatsApp con tu solicitud ya escrita. Solo tienes que tocar enviar.</p>
   </form>
 
   <div class="vok" hidden>
-    <div class="eyebrow">Solicitud recibida</div>
+    <div class="eyebrow">Solicitud lista</div>
     <h2>Gracias, <span data-nombre></span>.</h2>
-    <p>Te escribimos al <b data-cel></b> para confirmar el día y la hora. Si quieres adelantarte, mándanos tu solicitud por WhatsApp:</p>
-    <div class="agents">
-      {asesores.map((a) => (
-        <a class="agent" data-wa={a.whatsapp} href={`https://wa.me/${a.whatsapp}`} target="_blank" rel="noopener"><span class="av">{a.nombre[0]}</span><div><b>{a.nombre}</b><small>Enviar por WhatsApp</small></div></a>
-      ))}
-    </div>
+    <p>Abrimos WhatsApp con tu solicitud para <b data-asesor></b>. Si no se abrió o no la enviaste, tócala aquí:</p>
+    <a class="pillbtn solid" data-wa-final href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
     <button type="button" class="pillbtn" data-cerrar>Cerrar</button>
   </div>
 </dialog>
@@ -146,40 +159,51 @@ const adelanto = d.adelanto_meses ?? 1;
       box.innerHTML = DOCS[lab.value] ? `<b>Para sustentar tus ingresos:</b> ${DOCS[lab.value]} También revisamos tu historial en centrales de riesgo.` : '';
     });
 
-    form.addEventListener('submit', async (e) => {
+    const DIAS = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       const datos = new FormData(form);
-      const err = form.querySelector<HTMLElement>('.verror')!;
-      const btn = form.querySelector<HTMLButtonElement>('.vsend')!;
-      btn.disabled = true; btn.textContent = 'Enviando…'; err.hidden = true;
-      try {
-        const r = await fetch('/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams(datos as any).toString(),
-        });
-        if (!r.ok) throw new Error(String(r.status));
-      } catch {
-        err.hidden = false; btn.disabled = false; btn.textContent = 'Enviar solicitud';
-        return;
-      }
-      // resumen para mandar también por WhatsApp
       const g = (k: string) => String(datos.get(k) ?? '').trim();
+      const elegido = form.querySelector<HTMLInputElement>('input[name="asesor"]:checked, input[type="hidden"][name="asesor"]');
+      const numero = elegido?.dataset.wa ?? '';
+      const asesor = g('asesor');
+      const fecha = (v: string) => (v ? DIAS.format(new Date(v + 'T12:00:00Z')).replace(',', '') : '');
+      const dia = fecha(g('dia'));
+
+      // mensaje que le llega al asesor por WhatsApp
       const lineas = [
-        `Hola, solicito visita para ${g('codigo')}: ${g('propiedad')}`,
-        `Nombre: ${g('nombre')}`, `Documento: ${g('documento')}`, `Celular: ${g('celular')}`,
-        `Día: ${g('dia')} (${g('horario')})`,
-        g('tipologia') && `Tipología: ${g('tipologia')}`,
-        g('forma_pago') && `Forma de compra: ${g('forma_pago')}${/Crédito|Fovipol/.test(g('forma_pago')) ? ` · ${g('credito_estado')}` : ''}`,
-        g('situacion_laboral') && `Ingresos: ${g('situacion_laboral')} · ${g('ingreso_mensual')}`,
-        g('mensaje') && `Comentario: ${g('mensaje')}`,
-      ].filter(Boolean).join('\n');
-      ok.querySelectorAll<HTMLAnchorElement>('[data-wa]').forEach((a) => {
-        a.href = `https://wa.me/${a.dataset.wa}?text=${encodeURIComponent(lineas)}`;
-      });
+        `Hola ${asesor.split(' ')[0]}, soy ${g('nombre')}.`,
+        `Estoy interesado(a) en la propiedad ${g('codigo')}: ${g('propiedad')}.`,
+        g('tipologia') && `Me interesa la tipología ${g('tipologia')}.`,
+        `Me gustaría coordinar una visita, de preferencia el ${dia} a las ${g('horario')}`,
+        ' ',
+        `• DNI/CE: ${g('documento')}`,
+        `• Celular: ${g('celular')}`,
+        g('correo') && `• Correo: ${g('correo')}`,
+        g('forma_pago') && `• Compra con: ${g('forma_pago')}${/Crédito|Fovipol/.test(g('forma_pago')) && g('credito_estado') ? ` (${g('credito_estado')})` : ''}`,
+        g('situacion_laboral') && `• Ingresos: ${g('situacion_laboral')}, ${g('ingreso_mensual')}`,
+        g('ocupantes') && `• Personas que vivirían: ${g('ocupantes')}`,
+        g('mudanza') && `• Mudanza: ${fecha(g('mudanza'))}`,
+        g('mascotas') && `• Mascotas: ${g('mascotas')}`,
+        g('mensaje') && `• Comentario: ${g('mensaje')}`,
+        ' ',
+        location.href.split('#')[0],
+      ].filter(Boolean).map((l) => String(l).trim()).join('\n');
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(lineas)}`;
+
+      // copia de respaldo en Netlify (no frena el paso a WhatsApp)
+      fetch('/', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(datos as any).toString(),
+      }).catch(() => {});
+
+      ok.querySelector<HTMLAnchorElement>('[data-wa-final]')!.href = url;
       ok.querySelector('[data-nombre]')!.textContent = g('nombre').split(' ')[0];
-      ok.querySelector('[data-cel]')!.textContent = g('celular');
+      ok.querySelector('[data-asesor]')!.textContent = asesor;
       form.hidden = true; ok.hidden = false;
+      location.href = url;
     });
   }
 </script>
