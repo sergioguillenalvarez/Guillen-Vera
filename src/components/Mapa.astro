@@ -1,0 +1,36 @@
+---
+// Mapa con un círculo de unos 350 m alrededor de un punto ya desplazado: orienta sobre la zona sin revelar la dirección.
+interface Props { lat: number; lng: number; distrito: string; referencia?: string | null }
+const { lat, lng, distrito, referencia } = Astro.props;
+---
+<div class="block">
+  <h2 style="font-family:var(--display);font-size:34px">Ubicación</h2>
+  <div class="mapa" id="mapa" data-lat={lat} data-lng={lng} role="img" aria-label={`Zona aproximada en ${distrito}`}></div>
+  <p class="note">Zona aproximada en {distrito}{referencia ? `, cerca de ${referencia}` : ''}. La dirección exacta se comparte al coordinar la visita.</p>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script>
+  const el = document.getElementById('mapa');
+  if (el) {
+    const iniciar = () => {
+      const L = (window as any).L;
+      if (!L) return setTimeout(iniciar, 150);
+      const centro = [Number(el.dataset.lat), Number(el.dataset.lng)];
+      const oscuro = matchMedia('(prefers-color-scheme: dark)').matches;
+      const mapa = L.map(el, {
+        center: centro, zoom: 15, minZoom: 12, maxZoom: 16,
+        scrollWheelZoom: false, dragging: !L.Browser.mobile, attributionControl: true,
+      });
+      L.tileLayer(`https://{s}.basemaps.cartocdn.com/${oscuro ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`, {
+        attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd',
+      }).addTo(mapa);
+      L.circle(centro, { radius: 350, color: '#FF6A3D', weight: 1.5, fillColor: '#FFB443', fillOpacity: 0.18 }).addTo(mapa);
+    };
+    // se carga solo cuando el mapa está por aparecer en pantalla
+    new IntersectionObserver((es, io) => {
+      if (es.some((e) => e.isIntersecting)) { io.disconnect(); iniciar(); }
+    }, { rootMargin: '300px' }).observe(el);
+  }
+</script>

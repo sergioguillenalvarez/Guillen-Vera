@@ -3,8 +3,14 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Fotos from '../../components/Fotos.astro';
 import WaIcon from '../../components/WaIcon.astro';
-import ajustes from '../../data/ajustes.json';
-import { propiedadesPublicas, usd, cuotaMensual, resolverTiktok, youtubeId, venceExclusividad, type Propiedad } from '../../lib/propiedades';
+import Tipologias from '../../components/Tipologias.astro';
+import Mapa from '../../components/Mapa.astro';
+import SolicitudVisita from '../../components/SolicitudVisita.astro';
+import { asesores, waLink } from '../../lib/marca';
+import {
+  propiedadesPublicas, dinero, cuotaMensual, resolverTiktok, youtubeId, venceExclusividad, cerrada, esProyecto,
+  precioBase, precioTexto, tipologiasDisponibles, enumerar, rango, ubicacionAproximada, type Propiedad,
+} from '../../lib/propiedades';
 
 export async function getStaticPaths() {
   const props = await propiedadesPublicas();
@@ -14,16 +20,22 @@ export async function getStaticPaths() {
 const { p } = Astro.props as { p: Propiedad };
 const d = p.data;
 const { Content } = await render(p);
-const vendida = d.estado === 'Vendida';
+const vendida = cerrada(d);
+const proyecto = esProyecto(d);
+const alquiler = d.operacion === 'Alquiler';
+const precio = precioBase(d);
+const tips = proyecto ? (tipologiasDisponibles(d).length ? tipologiasDisponibles(d) : d.tipologias) : [];
 const tt = await resolverTiktok(d.tiktok);
 const yt = youtubeId(d.recorrido_youtube);
 const tieneRecorrido = Boolean(yt || d.recorrido_video);
 const vence = venceExclusividad(d);
-const msg = encodeURIComponent(`Hola, vi en su página el ${d.tipo.toLowerCase()} ${d.codigo} en ${d.distrito} (${usd(d.precio)}) y quiero más información.`);
-const wa = (n: string) => `https://wa.me/${n}?text=${msg}`;
+const punto = ubicacionAproximada(d.ubicacion, d.codigo);
+const queEs = proyecto ? 'proyecto' : d.tipo.toLowerCase();
+const msg = `Hola, vi en su página el ${queEs} ${d.codigo} en ${d.distrito} (${precioTexto(d)}) y quiero más información.`;
 const portada = d.fotos[0];
+const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` en ${d.dias_en_vender} días` : ''}` : d.estado === 'Alquilada' ? ' · Alquilada' : d.estado === 'Oportunidad' ? ' · Oportunidad' : '';
 ---
-<Base title={`${d.tipo} en ${d.distrito} · ${usd(d.precio)}`} description={d.titulo} image={portada}>
+<Base title={`${proyecto ? 'Proyecto' : d.tipo} en ${d.distrito} · ${precioTexto(d)}`} description={d.titulo} image={portada}>
   <div class="wrap">
     <div style="padding-top:16px"><a class="pillbtn" href="/">← Todas las propiedades</a></div>
 
@@ -40,19 +52,28 @@ const portada = d.fotos[0];
     <div class="dgrid">
       <div style="min-width:0">
         <div class="dhead">
-          <div class="eyebrow">{d.codigo} · {d.tipo} · {d.distrito}{vendida ? ` · Vendida${d.dias_en_vender ? ` en ${d.dias_en_vender} días` : ''}` : d.estado === 'Oportunidad' ? ' · Oportunidad' : ''}{d.ejemplo ? ' · Ejemplo' : ''}</div>
-          <div class="dprice">{usd(d.precio)}</div>
-          {d.precio_anterior && <div class="note" style="font-size:14px">Antes {usd(d.precio_anterior)} · ahorro de {usd(d.precio_anterior - d.precio)}</div>}
+          <div class="eyebrow">{d.codigo} · {proyecto ? 'Proyecto' : d.tipo} · {d.distrito}{alquiler ? ' · Alquiler' : ''}{estadoTexto}{d.ejemplo ? ' · Ejemplo' : ''}</div>
+          <div class="dprice">{proyecto && <span class="desde" style="font-size:16px">Desde</span>}{dinero(precio, d.moneda)}{alquiler && <span class="desde" style="font-size:16px"> al mes</span>}</div>
+          {d.precio_anterior && <div class="note" style="font-size:14px">Antes {dinero(d.precio_anterior, d.moneda)} · ahorro de {dinero(d.precio_anterior - precio, d.moneda)}</div>}
           <h1 class="dtitle">{d.titulo}</h1>
-          <div class="kfacts">
-            <div><b>{d.dormitorios}</b><span>dormitorios</span></div>
-            <div><b>{d.banos}</b><span>baños</span></div>
-            <div><b>{d.area_techada} m²</b><span>techados</span></div>
-            <div><b>{d.cocheras}</b><span>cocheras</span></div>
-            <div><b>{usd(Math.round(d.precio / d.area_techada))}</b><span>por m²</span></div>
-          </div>
+          {proyecto
+            ? <div class="kfacts">
+                <div><b>{enumerar(tips.map((t) => t.dormitorios))}</b><span>dormitorios</span></div>
+                <div><b>{rango(tips.map((t) => t.area))} m²</b><span>áreas</span></div>
+                <div><b>{d.tipologias.length}</b><span>tipologías</span></div>
+                {d.entrega && <div><b>{d.entrega}</b><span>entrega</span></div>}
+              </div>
+            : <div class="kfacts">
+                {d.dormitorios != null && <div><b>{d.dormitorios}</b><span>dormitorios</span></div>}
+                {d.banos != null && <div><b>{d.banos}</b><span>baños</span></div>}
+                {d.area_techada != null && <div><b>{d.area_techada} m²</b><span>techados</span></div>}
+                <div><b>{d.cocheras}</b><span>cocheras</span></div>
+                {!alquiler && d.area_techada && <div><b>{dinero(Math.round(precio / d.area_techada), d.moneda)}</b><span>por m²</span></div>}
+              </div>}
           <div class="desc"><Content /></div>
         </div>
+
+        {proyecto && <Tipologias d={d} />}
 
         {!tt && !tieneRecorrido && d.tiktok && (
           <div class="block"><a class="pillbtn solid" style="justify-self:start" href={d.tiktok} target="_blank" rel="noopener">Ver el video en TikTok</a></div>
@@ -61,7 +82,7 @@ const portada = d.fotos[0];
           <div class="block">
             <h2 style="font-family:var(--display);font-size:34px">Míralo en video</h2>
             {tt && tieneRecorrido && (
-              <div class="tabs" role="tablist">
+              <div class="tabs" id="vtabs" role="tablist">
                 <button type="button" role="tab" aria-selected="true" data-t="tt">Video de TikTok</button>
                 <button type="button" role="tab" aria-selected="false" data-t="tour">Recorrido completo</button>
               </div>
@@ -81,10 +102,10 @@ const portada = d.fotos[0];
           </div>
         )}
 
-        <div class="block">
+        {!proyecto && <div class="block">
           <h2 style="font-family:var(--display);font-size:34px">Ficha técnica</h2>
           <div class="spec">
-            <div><span>Área techada</span><b>{d.area_techada} m²</b></div>
+            {d.area_techada && <div><span>Área techada</span><b>{d.area_techada} m²</b></div>}
             {d.area_ocupada && <div><span>Área ocupada</span><b>{d.area_ocupada} m²</b></div>}
             {d.piso && <div><span>Piso</span><b>{d.piso}</b></div>}
             {d.ascensor && <div><span>Ascensor</span><b>{d.ascensor}</b></div>}
@@ -92,42 +113,62 @@ const portada = d.fotos[0];
             {d.anio && <div><span>Año de construcción</span><b>{d.anio}</b></div>}
             {d.mantenimiento && <div><span>Mantenimiento</span><b>S/ {d.mantenimiento} al mes</b></div>}
             <div><span>Cocheras</span><b>{d.cocheras || 'No tiene'}</b></div>
+            {alquiler && d.amoblado != null && <div><span>Amoblado</span><b>{d.amoblado ? 'Sí' : 'No'}</b></div>}
+            {alquiler && d.mascotas != null && <div><span>Mascotas</span><b>{d.mascotas ? 'Se aceptan' : 'No se aceptan'}</b></div>}
           </div>
-        </div>
+        </div>}
 
-        <div class="block">
-          <h2 style="font-family:var(--display);font-size:34px">Situación legal</h2>
-          <div class="legal">
-            <div class="lrow"><span class={`ic ${d.sunarp ? '' : 'w'}`}>{d.sunarp ? '✓' : '!'}</span><p>{d.sunarp ? 'Inscrita en SUNARP' : 'Inscripción en trámite'}<span>{d.sunarp ? 'Partida independizada a nombre del propietario.' : 'Te explicamos el estado del trámite.'}</span></p></div>
-            <div class="lrow"><span class={`ic ${d.hipoteca_banco ? 'w' : ''}`}>{d.hipoteca_banco ? '!' : '✓'}</span><p>{d.hipoteca_banco ? `Tiene hipoteca con ${d.hipoteca_banco}` : 'Sin hipoteca ni cargas'}<span>{d.hipoteca_banco ? <>Se levanta con el pago de la compraventa. Es un trámite normal y lo coordinamos nosotros. <a href="/#faq-comprar-con-hipoteca">¿Cómo funciona?</a></> : 'No figuran gravámenes en la partida.'}</span></p></div>
-            <div class="lrow"><span class="ic">✓</span><p>{d.acepta_credito ? 'Acepta crédito hipotecario' : 'Solo al contado'}<span>Te ayudamos a precalificar con el banco.</span></p></div>
-          </div>
-          <p class="note">La dirección exacta y los datos del propietario se comparten al coordinar la visita.</p>
-        </div>
+        {alquiler
+          ? <div class="block">
+              <h2 style="font-family:var(--display);font-size:34px">Requisitos para alquilar</h2>
+              <div class="legal">
+                <div class="lrow"><span class="ic">1</span><p>{d.adelanto_meses ?? 1} mes de adelanto y {d.garantia_meses ?? 2} de garantía<span>La garantía se devuelve al terminar el contrato si el inmueble queda en buen estado.</span></p></div>
+                <div class="lrow"><span class="ic">2</span><p>Sustento de ingresos<span>En planilla: tus últimas 3 boletas. Independiente: recibos por honorarios de los últimos 6 meses, estados de cuenta del mismo periodo y tu última declaración anual de renta en SUNAT.</span></p></div>
+                <div class="lrow"><span class="ic">3</span><p>Buen historial crediticio<span>Revisamos tu reporte en centrales de riesgo antes de firmar.</span></p></div>
+              </div>
+            </div>
+          : !proyecto && <div class="block">
+              <h2 style="font-family:var(--display);font-size:34px">Situación legal</h2>
+              <div class="legal">
+                <div class="lrow"><span class={`ic ${d.sunarp ? '' : 'w'}`}>{d.sunarp ? '✓' : '!'}</span><p>{d.sunarp ? 'Inscrita en SUNARP' : 'Inscripción en trámite'}<span>{d.sunarp ? 'Partida independizada a nombre del propietario.' : 'Te explicamos el estado del trámite.'}</span></p></div>
+                <div class="lrow"><span class={`ic ${d.hipoteca_banco ? 'w' : ''}`}>{d.hipoteca_banco ? '!' : '✓'}</span><p>{d.hipoteca_banco ? `Tiene hipoteca con ${d.hipoteca_banco}` : 'Sin hipoteca ni cargas'}<span>{d.hipoteca_banco ? <>Se levanta con el pago de la compraventa. Es un trámite normal y lo coordinamos nosotros. <a href="/#faq-comprar-con-hipoteca">¿Cómo funciona?</a></> : 'No figuran gravámenes en la partida.'}</span></p></div>
+                <div class="lrow"><span class="ic">✓</span><p>{d.acepta_credito ? 'Acepta crédito hipotecario' : 'Solo al contado'}<span>Te ayudamos a precalificar con el banco.</span></p></div>
+              </div>
+              <p class="note">La dirección exacta y los datos del propietario se comparten al coordinar la visita.</p>
+            </div>}
+
+        {punto && <Mapa lat={punto.lat} lng={punto.lng} distrito={d.distrito} referencia={d.referencia} />}
       </div>
 
       <aside class="cta">
         {vendida
-          ? <><div class="eyebrow">Vendida</div><b style="font-size:18px">{d.dias_en_vender ? `Se vendió en ${d.dias_en_vender} días.` : 'Esta propiedad ya se vendió.'}</b><p class="note" style="font-size:14px">¿Tienes una propiedad parecida? Te contamos cómo la trabajaríamos.</p></>
-          : <><div class="eyebrow">¿Te interesa?</div><b style="font-size:18px;line-height:1.3">Escríbenos y coordinamos tu visita.</b></>}
+          ? <><div class="eyebrow">{d.estado}</div><b style="font-size:18px">{d.estado === 'Alquilada' ? 'Esta propiedad ya se alquiló.' : d.dias_en_vender ? `Se vendió en ${d.dias_en_vender} días.` : 'Esta propiedad ya se vendió.'}</b><p class="note" style="font-size:14px">¿Tienes una propiedad parecida? Te contamos cómo la trabajaríamos.</p></>
+          : <>
+              <div class="eyebrow">¿Te interesa?</div>
+              <b style="font-size:18px;line-height:1.3">Agenda tu visita en un minuto.</b>
+              <button type="button" class="pillbtn solid vsend" data-abrir-visita>Solicitar visita</button>
+              <small class="note">O escríbenos directo:</small>
+            </>}
         <div class="agents">
-          <a class="agent" href={wa(ajustes.whatsapp_sergio)} target="_blank" rel="noopener"><span class="av sg">S</span><div><b>Sergio Guillen</b><small>Responde por WhatsApp</small></div><span class="wa"><WaIcon /></span></a>
-          <a class="agent" href={wa(ajustes.whatsapp_tatiana)} target="_blank" rel="noopener"><span class="av tv">T</span><div><b>Tatiana Vera</b><small>Responde por WhatsApp</small></div><span class="wa"><WaIcon /></span></a>
+          {asesores.map((a, i) => (
+            <a class="agent" href={waLink(a.whatsapp, msg)} target="_blank" rel="noopener"><span class={`av ${i % 2 ? 'tv' : 'sg'}`}>{a.nombre[0]}</span><div><b>{a.nombre}</b><small>Responde por WhatsApp</small></div><span class="wa"><WaIcon /></span></a>
+          ))}
         </div>
-        {!vendida && d.acepta_credito && (
-          <div class="calc"><small>Cuota mensual estimada</small><b>{usd(cuotaMensual(d.precio))}</b><small>Con 20% de inicial, 20 años y TEA 8.5%. Referencial.</small></div>
+        {!vendida && !alquiler && d.acepta_credito && (
+          <div class="calc"><small>Cuota mensual estimada{proyecto ? ' desde' : ''}</small><b>{dinero(cuotaMensual(precio), d.moneda)}</b><small>Con 20% de inicial, 20 años y TEA 8.5%. Referencial.</small></div>
         )}
         <p class="note">El mensaje ya incluye el código {d.codigo}, así sabemos qué propiedad viste.</p>
       </aside>
     </div>
   </div>
-  {!vendida && <div class="mbar"><a class="pillbtn solid" href={wa(ajustes.whatsapp_sergio)} target="_blank" rel="noopener">Consultar por WhatsApp</a></div>}
+  {!vendida && <div class="mbar"><button type="button" class="pillbtn solid" data-abrir-visita>Solicitar visita</button></div>}
+  {!vendida && <SolicitudVisita p={p} />}
 
   <script>
-    document.querySelector('.tabs')?.addEventListener('click', (e) => {
+    document.getElementById('vtabs')?.addEventListener('click', (e) => {
       const t = (e.target as HTMLElement).closest<HTMLElement>('button');
       if (!t) return;
-      document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b === t)));
+      document.querySelectorAll('#vtabs button').forEach((b) => b.setAttribute('aria-selected', String(b === t)));
       document.querySelectorAll<HTMLElement>('.panel-v').forEach((p) => (p.hidden = p.dataset.p !== t.dataset.t));
     });
   </script>

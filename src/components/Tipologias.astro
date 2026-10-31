@@ -1,0 +1,70 @@
+---
+import { dinero, type Propiedad } from '../lib/propiedades';
+interface Props { d: Propiedad['data'] }
+const { d } = Astro.props;
+const tips = [...d.tipologias].sort((a, b) => Number(a.agotada) - Number(b.agotada) || a.precio - b.precio);
+const dorms = [...new Set(tips.map((t) => t.dormitorios))].sort((a, b) => a - b);
+---
+<div class="block" id="tipologias">
+  <h2 style="font-family:var(--display);font-size:34px">Tipologías</h2>
+  <div class="tfilters">
+    <div class="tabs" role="group" aria-label="Dormitorios">
+      <button type="button" data-d="" aria-selected="true">Todas</button>
+      {dorms.map((n) => <button type="button" data-d={n} aria-selected="false">{n} dorm</button>)}
+    </div>
+    <label class="switch"><input type="checkbox" id="solo-disp" checked /> Solo disponibles</label>
+  </div>
+  <div class="tlist">
+    {tips.map((t) => (
+      <article class={`tip${t.agotada ? ' off' : ''}`} data-d={t.dormitorios} data-agotada={t.agotada ? '1' : undefined} hidden={t.agotada}>
+        <div class="tplano">{t.plano ? <img src={encodeURI(t.plano)} alt={`Plano de ${t.nombre}`} loading="lazy" /> : <span>{t.dormitorios}D</span>}</div>
+        <div class="tinfo">
+          <b>{t.nombre}</b>
+          <span>{t.dormitorios} dorm{t.banos ? ` · ${t.banos} baño${t.banos === 1 ? '' : 's'}` : ''} · {t.area} m²</span>
+          {t.pisos && <span class="note">Pisos {t.pisos}</span>}
+        </div>
+        <div class="tprecio">
+          {t.agotada
+            ? <span class="st off">Agotada</span>
+            : <>
+                <small>Desde</small>
+                <b>{dinero(t.precio, d.moneda)}</b>
+                <small>{dinero(Math.round(t.precio / t.area), d.moneda)} / m²{t.unidades ? ` · quedan ${t.unidades}` : ''}</small>
+              </>}
+        </div>
+        {!t.agotada && <button type="button" class="pillbtn tpick" data-tipo={t.nombre}>Me interesa</button>}
+      </article>
+    ))}
+    <p class="note" id="tvacio" hidden>No hay tipologías disponibles con ese filtro.</p>
+  </div>
+</div>
+
+<script>
+  const cont = document.getElementById('tipologias');
+  if (cont) {
+    let dorm = '';
+    const solo = cont.querySelector<HTMLInputElement>('#solo-disp')!;
+    const aplicar = () => {
+      let n = 0;
+      cont.querySelectorAll<HTMLElement>('.tip').forEach((t) => {
+        const ok = (!dorm || t.dataset.d === dorm) && (!solo.checked || !t.dataset.agotada);
+        t.hidden = !ok;
+        if (ok) n++;
+      });
+      cont.querySelector<HTMLElement>('#tvacio')!.hidden = n > 0;
+    };
+    cont.querySelector('.tabs')!.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('button');
+      if (!b) return;
+      dorm = b.dataset.d!;
+      cont.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+      aplicar();
+    });
+    solo.addEventListener('change', aplicar);
+    // "Me interesa" abre la solicitud de visita con esa tipología elegida
+    cont.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('.tpick');
+      if (b) document.dispatchEvent(new CustomEvent('abrir-visita', { detail: { tipologia: b.dataset.tipo } }));
+    });
+  }
+</script>

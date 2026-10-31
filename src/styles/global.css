@@ -240,3 +240,45 @@ a.card{text-decoration:none;color:inherit}
 @media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 select.chip{appearance:none;-webkit-appearance:none;color:var(--ink);font-family:var(--body);padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat}
 select.chip[aria-pressed="true"]{background-color:var(--ink);color:var(--bg)}
+.desde{font-family:var(--body);font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin-right:6px;vertical-align:middle}
+/* tipologías de proyecto */
+.tfilters{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.switch{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:600;cursor:pointer}
+.switch input{width:18px;height:18px;accent-color:var(--ink)}
+.tlist{display:grid;gap:10px}
+.tip{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:14px 16px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:16px;transition:border-color .25s,transform .25s var(--ease)}
+.tip:hover{border-color:var(--ink)}
+.tip.off{opacity:.55}
+.tplano{width:72px;height:72px;border-radius:12px;background:var(--soft);display:grid;place-items:center;overflow:hidden;font-family:var(--display);font-size:24px;color:var(--muted)}
+.tplano img{width:100%;height:100%;object-fit:cover}
+.tinfo{display:grid;gap:2px;min-width:0}
+.tinfo b{font-size:16px}
+.tinfo span{font-size:13px;color:var(--muted)}
+.tprecio{display:grid;justify-items:end;text-align:right}
+.tprecio b{font-family:var(--display);font-size:28px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.tprecio small{font-size:11px;color:var(--muted)}
+.tpick{grid-column:1/-1;justify-self:end}
+@media (min-width:640px){.tip{grid-template-columns:72px minmax(0,1fr) auto auto}.tpick{grid-column:auto}}
+@media (prefers-reduced-motion:no-preference){.tip:not([hidden]){animation:fade .4s var(--ease)}}
+/* mapa */
+.mapa{height:clamp(240px,40vw,380px);border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--soft);z-index:0}
+.mapa .leaflet-control-attribution{font-size:10px}
+/* solicitud de visita */
+dialog.visita{border:0;padding:0;border-radius:24px;width:min(560px,calc(100% - 24px));max-height:calc(100% - 24px);background:var(--bg);color:var(--ink);box-shadow:0 40px 120px -30px rgba(0,0,0,.45)}
+dialog.visita::backdrop{background:var(--scrim);backdrop-filter:blur(4px)}
+dialog.visita[open]{animation:fade .35s var(--ease)}
+dialog.visita form,dialog.visita .vok{padding:24px;display:grid;gap:14px}
+.vhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.vhead h2,.vok h2{font-family:var(--display);font-size:36px;letter-spacing:-.01em}
+.vclose{border:1px solid var(--line);background:transparent;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;flex:none}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vgrid .full{grid-column:1/-1}
+@media (max-width:480px){.vgrid{grid-template-columns:1fr}}
+.vgrid label{display:grid;gap:5px;font-size:13px;font-weight:600}
+.vgrid input:not([type=checkbox]),.vgrid select,.vgrid textarea{font:500 15px var(--body);color:var(--ink);background:var(--soft);border:1px solid transparent;border-radius:12px;padding:11px 12px;width:100%;transition:border-color .2s}
+.vgrid input:focus,.vgrid select:focus,.vgrid textarea:focus{outline:none;border-color:var(--ink)}
+.vgrid label.check{display:flex;gap:10px;align-items:flex-start;font-weight:500;color:var(--muted)}
+.vgrid label.check input{margin-top:3px;width:18px;height:18px;accent-color:var(--ink);flex:none}
+.vdocs{font-size:13px;line-height:1.5;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--sun2) 14%,transparent)}
+.vsend{justify-content:center;padding:14px}
+.vok .av{background:var(--ink);color:var(--bg)}

@@ -20,6 +20,22 @@ Cada propiedad guarda la **fecha de firma** y los **meses de vigencia** del cont
 
 Pega el link completo del video, el que tiene `/video/` seguido de números (por ejemplo `https://www.tiktok.com/@sergioguillen/video/7351234567890123456`). Los links cortos tipo `vm.tiktok.com` no sirven: ábrelos en el navegador y copia el link largo.
 
+### Proyectos con varias tipologías
+
+En la propiedad, llena **Tipologías** (una fila por tipo: dormitorios, área, precio desde, pisos, unidades, plano). Con eso la web la muestra como proyecto, con el precio "Desde" más bajo y un listado que se filtra por dormitorios. Marca **Agotada** cuando una tipología se acabe.
+
+### Mapa
+
+En **Ubicación** marca el punto en el mapa. La web solo muestra un círculo de unos 350 m alrededor de un punto corrido, nunca la dirección.
+
+### Solicitudes de visita
+
+Llegan a Netlify → **Forms** → `solicitud-visita`. Para recibirlas por correo: Netlify → Project configuration → Notifications → Emails and webhooks → Form submission notifications → agrega el correo de cada asesor.
+
+### Cambiar el nombre o los asesores
+
+En **Ajustes generales** se cambian el nombre del catálogo, la marca y la lista de asesores. Si alguien sale, se borra de la lista y desaparece de toda la web (botones de WhatsApp, portada, ícono).
+
 ## Puesta en marcha (una sola vez)
 
 1. **Netlify**: en app.netlify.com, "Add new site" → "Import an existing project" → GitHub → `Guillen-Vera`. La configuración ya está en `netlify.toml`.

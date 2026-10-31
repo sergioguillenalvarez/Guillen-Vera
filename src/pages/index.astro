@@ -2,7 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Tarjeta from '../components/Tarjeta.astro';
-import ajustes from '../data/ajustes.json';
+import { ajustes, asesores, nombresAsesores, principal, waLink } from '../lib/marca';
 import { propiedadesPublicas } from '../lib/propiedades';
 import { PRIORITARIOS, OTROS } from '../data/distritos';
 
@@ -14,6 +14,7 @@ const DISTRITOS = [...PRIORITARIOS];
 // solo los otros distritos que hoy tienen alguna propiedad
 const otrosConPropiedades = OTROS.filter((d) => props.some((p) => p.data.distrito === d));
 const vendidas = props.filter((p) => p.data.estado === 'Vendida');
+const hayAlquiler = props.some((p) => p.data.operacion === 'Alquiler' && p.data.estado !== 'Alquilada');
 const conDias = vendidas.filter((p) => p.data.dias_en_vender);
 const promedio = conDias.length ? Math.round(conDias.reduce((s, p) => s + p.data.dias_en_vender!, 0) / conDias.length) : 0;
 const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
@@ -21,7 +22,7 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
 <Base hayEjemplos={props.some((p) => p.data.ejemplo)}>
   <main class="wrap">
     <header class="hero">
-      <div class="eyebrow">Sergio Guillen · Tatiana Vera · Lima</div>
+      <div class="eyebrow">{asesores.map((a) => a.nombre).join(' · ')} · Lima</div>
       <h1><span class="line"><span>{linea1}</span></span>{resto.length > 0 && <span class="line"><span class="sun" style="font-style:italic">{resto.join(' ')}</span></span>}</h1>
       <div class="sub">
         <p>{ajustes.subtitulo}</p>
@@ -41,6 +42,7 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
         <span class="knob"></span>
         <button type="button" data-v="Disponible" aria-pressed="true">Disponibles</button>
         <button type="button" data-v="Oportunidad" aria-pressed="false">Oportunidades</button>
+        {hayAlquiler && <button type="button" data-v="Alquiler" aria-pressed="false">Alquiler</button>}
         <button type="button" data-v="Vendida" aria-pressed="false">Vendidas</button>
       </div>
       <div class="chips" id="chips" role="group" aria-label="Distrito">
@@ -63,7 +65,7 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
     <section class="stats">
       <div class="stat reveal"><b data-n={vendidas.length}>{vendidas.length}</b><span>propiedades vendidas</span></div>
       {promedio > 0 && <div class="stat reveal"><b data-n={promedio}>{promedio}</b><span>días promedio hasta la venta</span></div>}
-      <div class="stat reveal"><b data-n="2">2</b><span>marcas personales difundiendo cada propiedad</span></div>
+      <div class="stat reveal"><b data-n={asesores.length}>{asesores.length}</b><span>{asesores.length > 1 ? 'marcas personales difundiendo cada propiedad' : 'marca personal difundiendo cada propiedad'}</span></div>
       <div class="stat reveal"><b data-n="6">6</b><span>distritos donde trabajamos</span></div>
     </section>
 
@@ -72,10 +74,10 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
       <h2>Tu propiedad, más allá de los portales.</h2>
       <div class="steps">
         <div><b>Su propia página</b><p>Fotos profesionales, video recorrido, precio y estado legal. Sin tus datos personales ni la dirección exacta.</p></div>
-        <div><b>Dos audiencias a la vez</b><p>La publicamos en el TikTok e Instagram de Sergio y de Tatiana, y en esta cartera que reciben nuestros clientes e inversionistas.</p></div>
+        <div><b>{asesores.length > 1 ? 'Varias audiencias a la vez' : 'Redes y cartera a la vez'}</b><p>La publicamos en el TikTok e Instagram de {nombresAsesores}, y en esta cartera que reciben nuestros clientes e inversionistas.</p></div>
         <div><b>Interesados que llegan decididos</b><p>Quien nos escribe ya vio todo. Llega a WhatsApp listo para visitar y negociar, no a preguntar lo básico.</p></div>
       </div>
-      <a class="pillbtn" href={`https://wa.me/${ajustes.whatsapp_sergio}?text=${encodeURIComponent('Hola, quiero vender mi propiedad')}`} target="_blank" rel="noopener">Quiero vender mi propiedad →</a>
+      <a class="pillbtn" href={waLink(principal.whatsapp, 'Hola, quiero vender mi propiedad')} target="_blank" rel="noopener">Quiero vender mi propiedad →</a>
     </div></section>
 
     <section class="faq" id="preguntas">
