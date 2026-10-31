@@ -1,0 +1,209 @@
+---
+import { ajustes, asesores } from '../lib/marca';
+import { precioTexto, type Propiedad } from '../lib/propiedades';
+interface Props { p: Propiedad }
+const { p } = Astro.props;
+const d = p.data;
+const alquiler = d.operacion === 'Alquiler';
+const tips = d.tipologias.filter((t) => !t.agotada);
+const garantia = d.garantia_meses ?? 2;
+const adelanto = d.adelanto_meses ?? 1;
+const HORAS = ['9:00', '10:00', '11:00', '12:00', '1:00', '2:00', '3:00', '4:00', '5:00', '6:00', '7:00'].map(
+  (h, i) => `${h} ${i < 3 ? 'a. m.' : i === 3 ? 'm.' : 'p. m.'}`,
+);
+---
+<dialog class="visita" id="visita">
+  <form name="solicitud-visita" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="fvisita">
+    <input type="hidden" name="form-name" value="solicitud-visita" />
+    <input type="hidden" name="codigo" value={d.codigo} />
+    <input type="hidden" name="propiedad" value={`${d.titulo} · ${d.distrito} · ${precioTexto(d)}`} />
+    <input type="hidden" name="operacion" value={d.operacion} />
+    <p hidden><label>No llenar <input name="bot-field" /></label></p>
+
+    <div class="vhead">
+      <div>
+        <div class="eyebrow">{d.codigo} · {d.distrito}</div>
+        <h2>Solicitar visita</h2>
+      </div>
+      <button type="button" class="vclose" aria-label="Cerrar" data-cerrar>×</button>
+    </div>
+    <p class="note">Con estos datos llegamos a la visita sabiendo con quién hablamos y qué necesitas.</p>
+
+    <div class="vgrid">
+      <label class="full">Nombres y apellidos<input name="nombre" required autocomplete="name" /></label>
+      <label>DNI o carné de extranjería<input name="documento" required inputmode="numeric" pattern="[0-9A-Za-z]{8,12}" title="8 dígitos para DNI, hasta 12 para carné de extranjería" /></label>
+      <label>Celular (WhatsApp)<input name="celular" required inputmode="tel" pattern="[0-9 +]{9,15}" autocomplete="tel" /></label>
+      <label class="full">Correo (opcional)<input name="correo" type="email" autocomplete="email" /></label>
+      <label>Día preferido<input name="dia" type="date" required /></label>
+      <label>Hora preferida<select name="horario" required>
+        {HORAS.map((h) => <option selected={h === '10:00 a. m.'}>{h}</option>)}
+      </select></label>
+      {tips.length > 0 && (
+        <label class="full">Tipología de interés
+          <select name="tipologia" id="vtipologia">
+            <option value="">Aún no sé</option>
+            {tips.map((t) => <option value={t.nombre}>{t.nombre} · {t.dormitorios} dorm · {t.area} m²</option>)}
+          </select>
+        </label>
+      )}
+
+      {!alquiler && <>
+        <label class="full">¿Cómo piensas comprar?
+          <select name="forma_pago" required id="vpago">
+            <option value="">Elige una opción</option>
+            <option>Crédito hipotecario</option>
+            <option>Crédito MiVivienda</option>
+            <option>Fondos propios (contado)</option>
+            <option>Fovipol</option>
+            <option>Otro</option>
+          </select>
+        </label>
+        <label class="full" id="vcredito" hidden>¿Tu crédito ya está aprobado?
+          <select name="credito_estado">
+            <option value="">Elige una opción</option>
+            <option>Sí, tengo la aprobación o precalificación</option>
+            <option>Está en evaluación</option>
+            <option>Aún no lo solicito</option>
+          </select>
+        </label>
+      </>}
+
+      {alquiler && <>
+        <label class="full">¿Cómo generas tus ingresos?
+          <select name="situacion_laboral" required id="vlaboral">
+            <option value="">Elige una opción</option>
+            <option value="Dependiente">Trabajo en planilla (dependiente)</option>
+            <option value="Independiente">Independiente (recibos por honorarios)</option>
+            <option value="Empresa">Tengo una empresa</option>
+          </select>
+        </label>
+        <div class="vdocs full" id="vdocs" hidden></div>
+        <label>Ingreso mensual aproximado
+          <select name="ingreso_mensual" required>
+            <option value="">Elige un rango</option>
+            <option>Menos de S/ 5,000</option>
+            <option>S/ 5,000 a 8,000</option>
+            <option>S/ 8,000 a 12,000</option>
+            <option>S/ 12,000 a 20,000</option>
+            <option>Más de S/ 20,000</option>
+          </select>
+        </label>
+        <label>¿Cuántas personas vivirían?<input name="ocupantes" type="number" min="1" max="12" value="1" /></label>
+        <label>Fecha de mudanza<input name="mudanza" type="date" /></label>
+        <label>¿Mascotas?<select name="mascotas"><option>No</option><option>Sí</option></select></label>
+        <label class="check full"><input type="checkbox" name="sustento" value="Sí" required /> Puedo presentar el sustento de mis ingresos y aceptar {adelanto} mes{adelanto === 1 ? '' : 'es'} de adelanto y {garantia} de garantía.</label>
+      </>}
+
+      <label class="full">Comentario (opcional)<textarea name="mensaje" rows="2"></textarea></label>
+      <label class="check full"><input type="checkbox" name="consentimiento" value="Sí" required /> Acepto que {ajustes.marca} use estos datos solo para coordinar mi visita y evaluar mi solicitud (Ley 29733).</label>
+    </div>
+
+    {asesores.length > 1 ? (
+      <fieldset class="vasesor">
+        <legend>¿Con quién quieres coordinar?</legend>
+        {asesores.map((a, i) => (
+          <label><input type="radio" name="asesor" value={a.nombre} data-wa={a.whatsapp} checked={i === 0} required /><span class="av">{a.nombre[0]}</span><b>{a.nombre}</b></label>
+        ))}
+      </fieldset>
+    ) : (
+      <input type="hidden" name="asesor" value={asesores[0]?.nombre} data-wa={asesores[0]?.whatsapp} />
+    )}
+
+    <button type="submit" class="pillbtn solid vsend">Enviar solicitud por WhatsApp</button>
+    <p class="note">Se abrirá WhatsApp con tu solicitud ya escrita. Solo tienes que tocar enviar.</p>
+  </form>
+
+  <div class="vok" hidden>
+    <div class="eyebrow">Solicitud lista</div>
+    <h2>Gracias, <span data-nombre></span>.</h2>
+    <p>Abrimos WhatsApp con tu solicitud para <b data-asesor></b>. Si no se abrió o no la enviaste, tócala aquí:</p>
+    <a class="pillbtn solid" data-wa-final href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+    <button type="button" class="pillbtn" data-cerrar>Cerrar</button>
+  </div>
+</dialog>
+
+<script>
+  const dlg = document.getElementById('visita') as HTMLDialogElement | null;
+  const form = document.getElementById('fvisita') as HTMLFormElement | null;
+  if (dlg && form) {
+    const ok = dlg.querySelector<HTMLElement>('.vok')!;
+    const abrir = (tipologia?: string) => {
+      const sel = document.getElementById('vtipologia') as HTMLSelectElement | null;
+      if (sel && tipologia) sel.value = tipologia;
+      const dia = form.elements.namedItem('dia') as HTMLInputElement;
+      if (!dia.value) dia.min = new Date().toISOString().slice(0, 10);
+      dlg.showModal();
+    };
+    document.querySelectorAll('[data-abrir-visita]').forEach((b) => b.addEventListener('click', () => abrir()));
+    document.addEventListener('abrir-visita', (e) => abrir((e as CustomEvent).detail?.tipologia));
+    dlg.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-cerrar]') || e.target === dlg) dlg.close();
+    });
+
+    // venta: preguntar por el crédito solo si compra con crédito
+    const pago = document.getElementById('vpago') as HTMLSelectElement | null;
+    pago?.addEventListener('change', () => {
+      document.getElementById('vcredito')!.hidden = !/Crédito|Fovipol/.test(pago.value);
+    });
+
+    // alquiler: mostrar qué documentos sustentan los ingresos según cómo trabaja
+    const DOCS: Record<string, string> = {
+      Dependiente: 'Tus últimas 3 boletas de pago. Si tienes, suma tu certificado de trabajo.',
+      Independiente: 'Tus recibos por honorarios electrónicos de los últimos 6 meses, los estados de cuenta del banco del mismo periodo y tu última declaración anual de renta en SUNAT.',
+      Empresa: 'Las declaraciones mensuales a SUNAT (Formulario 621) de los últimos 6 meses, los estados de cuenta de la empresa y su ficha RUC.',
+    };
+    const lab = document.getElementById('vlaboral') as HTMLSelectElement | null;
+    lab?.addEventListener('change', () => {
+      const box = document.getElementById('vdocs')!;
+      box.hidden = !DOCS[lab.value];
+      box.innerHTML = DOCS[lab.value] ? `<b>Para sustentar tus ingresos:</b> ${DOCS[lab.value]} También revisamos tu historial en centrales de riesgo.` : '';
+    });
+
+    const DIAS = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const datos = new FormData(form);
+      const g = (k: string) => String(datos.get(k) ?? '').trim();
+      const elegido = form.querySelector<HTMLInputElement>('input[name="asesor"]:checked, input[type="hidden"][name="asesor"]');
+      const numero = elegido?.dataset.wa ?? '';
+      const asesor = g('asesor');
+      const fecha = (v: string) => (v ? DIAS.format(new Date(v + 'T12:00:00Z')).replace(',', '') : '');
+      const dia = fecha(g('dia'));
+
+      // mensaje que le llega al asesor por WhatsApp
+      const lineas = [
+        `Hola ${asesor.split(' ')[0]}, soy ${g('nombre')}.`,
+        `Estoy interesado(a) en la propiedad ${g('codigo')}: ${g('propiedad')}.`,
+        g('tipologia') && `Me interesa la tipología ${g('tipologia')}.`,
+        `Me gustaría coordinar una visita, de preferencia el ${dia} a las ${g('horario')}`,
+        ' ',
+        `• DNI/CE: ${g('documento')}`,
+        `• Celular: ${g('celular')}`,
+        g('correo') && `• Correo: ${g('correo')}`,
+        g('forma_pago') && `• Compra con: ${g('forma_pago')}${/Crédito|Fovipol/.test(g('forma_pago')) && g('credito_estado') ? ` (${g('credito_estado')})` : ''}`,
+        g('situacion_laboral') && `• Ingresos: ${g('situacion_laboral')}, ${g('ingreso_mensual')}`,
+        g('ocupantes') && `• Personas que vivirían: ${g('ocupantes')}`,
+        g('mudanza') && `• Mudanza: ${fecha(g('mudanza'))}`,
+        g('mascotas') && `• Mascotas: ${g('mascotas')}`,
+        g('mensaje') && `• Comentario: ${g('mensaje')}`,
+        ' ',
+        location.href.split('#')[0],
+      ].filter(Boolean).map((l) => String(l).trim()).join('\n');
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(lineas)}`;
+
+      // copia de respaldo en Netlify (no frena el paso a WhatsApp)
+      fetch('/', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(datos as any).toString(),
+      }).catch(() => {});
+
+      ok.querySelector<HTMLAnchorElement>('[data-wa-final]')!.href = url;
+      ok.querySelector('[data-nombre]')!.textContent = g('nombre').split(' ')[0];
+      ok.querySelector('[data-asesor]')!.textContent = asesor;
+      form.hidden = true; ok.hidden = false;
+      location.href = url;
+    });
+  }
+</script>

@@ -1,0 +1,137 @@
+---
+// Selector de proyecto al estilo "elige tu modelo": 1) dormitorios, 2) modelo, 3) ficha del modelo.
+import { dinero, enDolares, rango, type Propiedad } from '../lib/propiedades';
+interface Props { d: Propiedad['data'] }
+const { d } = Astro.props;
+const tips = d.tipologias.filter((t) => !t.agotada).sort((a, b) => a.dormitorios - b.dormitorios || a.precio - b.precio);
+const dorms = [...new Set(tips.map((t) => t.dormitorios))];
+const grupos = dorms.map((n) => {
+  const ts = tips.filter((t) => t.dormitorios === n);
+  const desde = Math.min(...ts.map((t) => t.precio));
+  return {
+    n, ts, desde,
+    usd: enDolares(desde, d),
+    areas: rango(ts.flatMap((t) => [t.area, t.area_max ?? t.area])),
+    unidades: ts.reduce((s, t) => s + (t.unidades ?? 0), 0),
+  };
+});
+const dormTxt = (n: number) => (n === 0 ? 'Estudio' : `${n} dormitorio${n === 1 ? '' : 's'}`);
+const areaTxt = (t: (typeof tips)[number]) => (t.area_max && t.area_max !== t.area ? `${t.area}–${t.area_max}` : `${t.area}`);
+const vistaTxt = (t: (typeof tips)[number]) => (t.vistas.length ? t.vistas : t.vista ? [t.vista] : []);
+const unico = grupos.length === 1;
+---
+<section class="block psel" id="tipologias">
+  <div class="eyebrow">Elige tu departamento</div>
+  <h2 class="ptitle">¿Cuántos dormitorios necesitas?</h2>
+
+  <div class="dsel" role="group" aria-label="Dormitorios">
+    {grupos.map((g) => (
+      <button type="button" class="dcard" data-d={g.n} aria-pressed={unico ? 'true' : 'false'}>
+        <span class="dn">{g.n || 'E'}</span>
+        <span class="dl">{dormTxt(g.n)}</span>
+        <span class="dp">Desde <b>{dinero(g.desde, d.moneda)}</b></span>
+        <small>{g.usd ? `${g.usd} · ` : ''}{g.areas} m²{g.unidades ? ` · ${g.unidades} disponible${g.unidades === 1 ? '' : 's'}` : ''}</small>
+      </button>
+    ))}
+  </div>
+
+  {grupos.map((g) => (
+    <div class="mstep" data-d={g.n} hidden={!unico}>
+      <h3 class="ptitle sm">Modelos de {dormTxt(g.n).toLowerCase()}</h3>
+      <div class="mlist">
+        {g.ts.map((t) => {
+          const img = t.fotos[0] ?? t.plano;
+          return (
+            <button type="button" class="mcard" data-m={t.nombre} aria-pressed={g.ts.length === 1 ? 'true' : 'false'}>
+              <span class="mimg">{img ? <img src={encodeURI(img)} alt="" loading="lazy" /> : <span>{t.modelo ?? t.nombre?.slice(-1)}</span>}</span>
+              <b>{t.nombre}</b>
+              <small>{areaTxt(t)} m²{vistaTxt(t).length ? ` · ${vistaTxt(t).length > 1 ? `${vistaTxt(t).length} vistas` : vistaTxt(t)[0]}` : ''}</small>
+              <span class="mp">Desde {dinero(t.precio, d.moneda)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {g.ts.map((t) => {
+        const imgs = [...t.fotos, ...(t.plano ? [t.plano] : [])];
+        const usd = enDolares(t.precio, d);
+        return (
+          <article class="mdet" data-m={t.nombre} hidden={g.ts.length !== 1}>
+            {imgs.length > 0 && (
+              <div class="mgal">
+                {imgs.map((src, i) => <img src={encodeURI(src)} alt={`${t.nombre}, imagen ${i + 1}`} loading="lazy" />)}
+              </div>
+            )}
+            <div class="mhead">
+              <div>
+                <div class="eyebrow">{dormTxt(t.dormitorios)}{t.unidades ? ` · ${t.unidades} disponible${t.unidades === 1 ? '' : 's'}` : ''}</div>
+                <h3>{t.nombre}</h3>
+              </div>
+              <div class="mprecio"><small>Precio de lista desde</small><b>{dinero(t.precio, d.moneda)}</b>{usd && <small>{usd}</small>}</div>
+            </div>
+            <div class="spec">
+              <div><span>Área</span><b>{areaTxt(t)} m²</b></div>
+              <div><span>Dormitorios</span><b>{t.dormitorios || 'Estudio'}</b></div>
+              {t.banos && <div><span>Baños</span><b>{t.banos}</b></div>}
+              <div><span>Cochera</span><b>{t.cochera ? (t.cochera === 1 ? 'Incluye 1' : `Incluye ${t.cochera}`) : 'No incluye'}</b></div>
+              {vistaTxt(t).length > 0 && <div><span>Vista</span><b>{vistaTxt(t).join(' · ')}</b></div>}
+              {t.pisos && <div><span>Pisos disponibles</span><b>{t.pisos}</b></div>}
+              {d.ascensor && <div><span>Ascensor</span><b>{d.ascensor}</b></div>}
+              {d.mantenimiento_nota && <div><span>Mantenimiento</span><b>{d.mantenimiento_nota}</b></div>}
+            </div>
+            <div class="macc">
+              <button type="button" class="pillbtn solid tpick" data-tipo={t.nombre}>Quiero cotizar este modelo</button>
+              <small class="note">Te enviamos la cotización del piso y la vista que prefieras.</small>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  ))}
+</section>
+
+<script>
+  const cont = document.getElementById('tipologias');
+  if (cont) {
+    const pulsar = (grupo: NodeListOf<HTMLElement>, elegido: HTMLElement) =>
+      grupo.forEach((b) => b.setAttribute('aria-pressed', String(b === elegido)));
+    const mostrar = (el: HTMLElement) => {
+      el.hidden = false;
+      el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra');
+    };
+    cont.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const dcard = t.closest<HTMLElement>('.dcard');
+      if (dcard) {
+        pulsar(cont.querySelectorAll('.dcard'), dcard);
+        cont.querySelectorAll<HTMLElement>('.mstep').forEach((s) => {
+          if (s.dataset.d === dcard.dataset.d) {
+            mostrar(s);
+            const solo = s.querySelectorAll('.mcard').length === 1;
+            if (!solo) {
+              s.querySelectorAll('.mcard').forEach((m) => m.setAttribute('aria-pressed', 'false'));
+              s.querySelectorAll<HTMLElement>('.mdet').forEach((m) => (m.hidden = true));
+            }
+            s.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else s.hidden = true;
+        });
+        return;
+      }
+      const mcard = t.closest<HTMLElement>('.mcard');
+      if (mcard) {
+        const paso = mcard.closest<HTMLElement>('.mstep')!;
+        pulsar(paso.querySelectorAll('.mcard'), mcard);
+        paso.querySelectorAll<HTMLElement>('.mdet').forEach((m) => {
+          if (m.dataset.m === mcard.dataset.m) {
+            mostrar(m);
+            m.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else m.hidden = true;
+        });
+        return;
+      }
+      // "Quiero cotizar" abre la solicitud de visita con ese modelo elegido
+      const pick = t.closest<HTMLElement>('.tpick');
+      if (pick) document.dispatchEvent(new CustomEvent('abrir-visita', { detail: { tipologia: pick.dataset.tipo } }));
+    });
+  }
+</script>

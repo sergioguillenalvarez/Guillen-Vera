@@ -20,26 +20,28 @@ collections:
     create: true
     slug: "{{codigo}}"
     identifier_field: codigo
-    summary: "{{codigo}} · {{estado}} · {{distrito}} · US$ {{precio}}"
+    summary: "{{codigo}} · {{operacion}} · {{estado}} · {{distrito}}"
     sortable_fields: [codigo, precio, fecha_publicacion, exclusividad_firma]
     fields:
       - { name: codigo, label: "Código (el que sale en el video, ej. GV-05)", widget: string, pattern: ['^GV-\d+$', 'Usa el formato GV-05'] }
       - { name: titulo, label: Título, widget: string }
-      - { name: estado, label: Estado, widget: select, options: [Disponible, Oportunidad, Vendida], default: Disponible }
-      - { name: distrito, label: Distrito, widget: select, options: [Miraflores, Barranco, San Isidro, Surquillo, Magdalena, Lince] }
+      - { name: operacion, label: Operación, widget: select, options: [Venta, Alquiler], default: Venta }
+      - { name: estado, label: Estado, widget: select, options: [Disponible, Oportunidad, Vendida, Alquilada], default: Disponible }
+      - { name: distrito, label: Distrito, widget: select, options: [Miraflores, Barranco, San Isidro, Surquillo, Magdalena, Lince, Santiago de Surco, San Borja, La Molina, Jesús María, Pueblo Libre, San Miguel, Chorrillos, Lima Cercado, Breña, La Victoria, Rímac, San Juan de Miraflores, Villa María del Triunfo, Villa El Salvador, Ate, Santa Anita, El Agustino, San Juan de Lurigancho, Los Olivos, San Martín de Porres, Independencia, Comas, Carabayllo, Puente Piedra, Cieneguilla, Pachacámac, Lurín, Punta Hermosa, Punta Negra, San Bartolo, Asia, Callao, Bellavista, La Perla, La Punta], hint: "Los seis primeros son Lima Top y salen primero en la web." }
       - { name: tipo, label: Tipo, widget: select, options: [Departamento, Dúplex, Flat, Loft, Penthouse, Casa, Oficina, Terreno], default: Departamento }
-      - { name: precio, label: "Precio (US$)", widget: number, value_type: int }
+      - { name: moneda, label: Moneda, widget: select, options: [{ label: "Dólares (US$)", value: USD }, { label: "Soles (S/)", value: PEN }], default: USD }
+      - { name: precio, label: "Precio (en alquiler, el monto mensual). En proyectos déjalo vacío: se toma el más bajo de las tipologías", widget: number, value_type: int, required: false }
       - { name: precio_anterior, label: "Precio anterior (US$, solo para oportunidades)", widget: number, value_type: int, required: false }
-      - { name: area_techada, label: "Área techada (m²)", widget: number, value_type: float }
+      - { name: area_techada, label: "Área techada (m²)", widget: number, value_type: float, required: false }
       - { name: area_ocupada, label: "Área ocupada (m²)", widget: number, value_type: float, required: false }
-      - { name: dormitorios, label: Dormitorios, widget: number, value_type: int }
-      - { name: banos, label: "Baños (medio baño = 0.5)", widget: number, value_type: float }
+      - { name: dormitorios, label: Dormitorios, widget: number, value_type: int, required: false }
+      - { name: banos, label: "Baños (medio baño = 0.5)", widget: number, value_type: float, required: false }
       - { name: cocheras, label: Cocheras, widget: number, value_type: int, default: 0 }
       - { name: piso, label: "Piso (ej. 9 de 14)", widget: string, required: false }
       - { name: ascensor, label: Ascensor, widget: select, options: [Directo, Sí, No], required: false }
       - { name: vista, label: Vista, widget: string, required: false }
       - { name: anio, label: Año de construcción, widget: number, value_type: int, required: false }
-      - { name: mantenimiento, label: "Mantenimiento mensual (S/)", widget: number, value_type: int, required: false }
+      - { name: mantenimiento, label: "Mantenimiento mensual (S/, propiedades sueltas)", widget: number, value_type: int, required: false }
       - { name: hipoteca_banco, label: "Banco de la hipoteca (vacío si no tiene)", widget: string, required: false }
       - { name: sunarp, label: Inscrita en SUNARP, widget: boolean, default: true }
       - { name: acepta_credito, label: Acepta crédito hipotecario, widget: boolean, default: true }
@@ -47,7 +49,39 @@ collections:
         label: "Fotos (la primera es la portada; arrastra para ordenar)"
         widget: list
         field: { name: foto, label: Foto, widget: image }
-      - { name: tiktok, label: "Link del video de TikTok (el link completo, con /video/…)", widget: string, required: false }
+      - { name: etapa, label: "Proyecto: etapa", widget: select, options: ["Entrega inmediata", "En construcción", "En planos"], required: false }
+      - { name: entrega, label: "Proyecto: fecha de entrega (ej. Junio 2027)", widget: string, required: false, hint: "Solo si está en construcción o en planos." }
+      - { name: estreno, label: "Proyecto: departamentos de estreno", widget: boolean, default: false, required: false }
+      - { name: sin_alcabala, label: "Proyecto: no paga alcabala", widget: boolean, default: false, required: false }
+      - { name: bancos, label: "Proyecto: bancos con los que se puede financiar", widget: list, required: false, hint: "Ej. Interbank. Déjalo vacío si se acepta cualquier banco." }
+      - { name: carta_fianza, label: "Proyecto: con otros bancos se pide carta fianza", widget: boolean, default: false, required: false }
+      - { name: mantenimiento_nota, label: "Proyecto: mantenimiento (ej. US$ 1 por m² al mes)", widget: string, required: false }
+      - { name: tipo_cambio, label: "Proyecto: tipo de cambio para mostrar el precio aproximado en dólares (ej. 3.75)", widget: number, value_type: float, required: false, hint: "Solo si los precios están en soles." }
+      - { name: hoja_precios, label: "Proyecto: clave de la hoja de precios (ej. BLUE)", widget: string, required: false, hint: "Escribe una clave corta y guarda el link de la hoja en Netlify como variable HOJA_BLUE (ver la guía). Así los precios se actualizan solos cada día y el link no queda público." }
+      - name: tipologias
+        label: "Proyecto: modelos / tipologías (si llenas esto, la propiedad se muestra como proyecto)"
+        label_singular: modelo
+        widget: list
+        required: false
+        hint: "Con hoja de precios: basta con la letra del modelo, fotos, baños y cochera; el área, los pisos, la vista y el precio salen de la hoja. Sin hoja: llena todo a mano."
+        summary: "{{fields.modelo}} {{fields.nombre}} · {{fields.dormitorios}} dorm"
+        fields:
+          - { name: modelo, label: "Modelo (la letra o código de la hoja, ej. A)", widget: string, required: false }
+          - { name: nombre, label: "Nombre para la web (opcional, ej. Flat 1 dormitorio)", widget: string, required: false }
+          - { name: fotos, label: "Fotos del modelo", widget: image, multiple: true, required: false }
+          - { name: plano, label: Plano, widget: image, required: false }
+          - { name: banos, label: Baños, widget: number, value_type: float, required: false }
+          - { name: cochera, label: "Cocheras incluidas (0 si no tiene)", widget: number, value_type: int, required: false }
+          - { name: dormitorios, label: "Dormitorios (sin hoja)", widget: number, value_type: int, required: false }
+          - { name: area, label: "Área m² (sin hoja)", widget: number, value_type: float, required: false }
+          - { name: precio, label: "Precio desde (sin hoja)", widget: number, value_type: int, required: false }
+          - { name: pisos, label: "Pisos disponibles (sin hoja, ej. 3, 5, 7 al 9)", widget: string, required: false }
+          - { name: vista, label: "Vista (sin hoja)", widget: string, required: false }
+          - { name: unidades, label: "Unidades disponibles (sin hoja)", widget: number, value_type: int, required: false }
+          - { name: agotada, label: "Agotado (sin hoja)", widget: boolean, default: false, required: false }
+      - { name: ubicacion, label: "Ubicación (marca el punto; en la web solo se ve un círculo de la zona)", widget: map, required: false }
+      - { name: referencia, label: "Referencia de la zona (ej. Parque Kennedy)", widget: string, required: false }
+      - { name: tiktok, label: "Link del video de TikTok (el de Compartir → Copiar link sirve)", widget: string, required: false }
       - { name: recorrido_youtube, label: "Recorrido completo: link de YouTube", widget: string, required: false }
       - { name: recorrido_video, label: "Recorrido completo: o sube el video aquí", widget: file, required: false }
       - { name: body, label: Descripción, widget: markdown, required: false }
@@ -63,6 +97,10 @@ collections:
         fields:
           - { name: fecha, label: Fecha de renovación, widget: datetime, time_format: false, format: "YYYY-MM-DD" }
           - { name: meses, label: Meses, widget: select, options: [{ label: "3 meses", value: 3 }, { label: "6 meses", value: 6 }, { label: "12 meses", value: 12 }] }
+      - { name: adelanto_meses, label: "Alquiler: meses de adelanto", widget: number, value_type: int, required: false }
+      - { name: garantia_meses, label: "Alquiler: meses de garantía", widget: number, value_type: int, required: false }
+      - { name: amoblado, label: "Alquiler: amoblado", widget: boolean, required: false }
+      - { name: mascotas, label: "Alquiler: acepta mascotas", widget: boolean, required: false }
       - { name: dias_en_vender, label: "Días que tomó venderla (solo vendidas)", widget: number, value_type: int, required: false }
       - { name: ejemplo, label: "Propiedad de ejemplo (desmarcar en las reales)", widget: boolean, default: false }
 
@@ -91,9 +129,12 @@ collections:
           - { name: nombre_catalogo, label: Nombre del catálogo, widget: string }
           - { name: marca, label: Marca, widget: string }
           - { name: subtitulo, label: Texto de portada, widget: text }
-          - { name: whatsapp_sergio, label: "WhatsApp de Sergio (con 51, sin + ni espacios)", widget: string }
-          - { name: whatsapp_tatiana, label: "WhatsApp de Tatiana (con 51, sin + ni espacios)", widget: string }
-          - { name: instagram_sergio, label: Instagram de Sergio, widget: string, required: false }
-          - { name: instagram_tatiana, label: Instagram de Tatiana, widget: string, required: false }
-          - { name: tiktok_sergio, label: TikTok de Sergio, widget: string, required: false }
-          - { name: tiktok_tatiana, label: TikTok de Tatiana, widget: string, required: false }
+          - name: asesores
+            label: "Asesores (aparecen en la web con su botón de WhatsApp; el primero es el contacto principal)"
+            label_singular: asesor
+            widget: list
+            fields:
+              - { name: nombre, label: Nombre, widget: string }
+              - { name: whatsapp, label: "WhatsApp (con 51, sin + ni espacios)", widget: string }
+              - { name: instagram, label: "Instagram (link)", widget: string, required: false }
+              - { name: tiktok, label: "TikTok (link)", widget: string, required: false }
