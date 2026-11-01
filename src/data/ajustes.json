@@ -3,7 +3,17 @@
   "marca": "Guillen & Vera",
   "subtitulo": "Departamentos seleccionados en Miraflores, Barranco, San Isidro y alrededores. Cada uno con su video, su precio y sus papeles a la vista.",
   "asesores": [
-    { "nombre": "Sergio Guillen", "whatsapp": "51902818909", "instagram": "", "tiktok": "" },
-    { "nombre": "Tatiana Vera", "whatsapp": "51944393256", "instagram": "", "tiktok": "" }
+    {
+      "nombre": "Sergio Guillen",
+      "whatsapp": "51902818909",
+      "instagram": "https://www.instagram.com/sergioguillen.pe/",
+      "tiktok": "https://www.tiktok.com/@sergioguillenremax"
+    },
+    {
+      "nombre": "Tatiana Vera",
+      "whatsapp": "51944393256",
+      "instagram": "",
+      "tiktok": ""
+    }
   ]
 }
