@@ -33,6 +33,7 @@ const punto = ubicacionAproximada(d.ubicacion, d.codigo);
 const queEs = proyecto ? 'proyecto' : d.tipo.toLowerCase();
 const msg = `Hola, vi en su página el ${queEs} ${d.codigo} en ${d.distrito} (${precioTexto(d)}) y quiero más información.`;
 const portada = d.fotos[0];
+const antiguedad = d.anio ? Math.max(0, new Date().getFullYear() - d.anio) : null;
 const enumerarTexto = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} o ${xs.at(-1)}` : xs[0]);
 const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` en ${d.dias_en_vender} días` : ''}` : d.estado === 'Alquilada' ? ' · Alquilada' : d.estado === 'Oportunidad' ? ' · Oportunidad' : '';
 ---
@@ -107,13 +108,13 @@ const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` 
         {!proyecto && <div class="block">
           <h2 style="font-family:var(--display);font-size:34px">Ficha técnica</h2>
           <div class="spec">
-            {d.area_techada && <div><span>Área techada</span><b>{d.area_techada} m²</b></div>}
-            {d.area_ocupada && <div><span>Área ocupada</span><b>{d.area_ocupada} m²</b></div>}
+            {(d.area_techada ?? 0) > 0 && <div><span>Área techada</span><b>{d.area_techada} m²</b></div>}
+            {(d.area_ocupada ?? 0) > 0 && <div><span>Área ocupada</span><b>{d.area_ocupada} m²</b></div>}
             {d.piso && <div><span>Piso</span><b>{d.piso}</b></div>}
             {d.ascensor && <div><span>Ascensor</span><b>{d.ascensor}</b></div>}
             {d.vista && <div><span>Vista</span><b>{d.vista}</b></div>}
-            {d.anio && <div><span>Año de construcción</span><b>{d.anio}</b></div>}
-            {d.mantenimiento && <div><span>Mantenimiento</span><b>S/ {d.mantenimiento} al mes</b></div>}
+            {antiguedad != null && <div><span>Antigüedad</span><b>{antiguedad === 0 ? 'Estreno' : `${antiguedad} año${antiguedad === 1 ? '' : 's'}`}</b></div>}
+            {(d.mantenimiento ?? 0) > 0 && <div><span>Mantenimiento</span><b>S/ {d.mantenimiento} al mes</b></div>}
             <div><span>Cocheras</span><b>{d.cocheras || 'No tiene'}</b></div>
             {alquiler && d.amoblado != null && <div><span>Amoblado</span><b>{d.amoblado ? 'Sí' : 'No'}</b></div>}
             {alquiler && d.mascotas != null && <div><span>Mascotas</span><b>{d.mascotas ? 'Se aceptan' : 'No se aceptan'}</b></div>}

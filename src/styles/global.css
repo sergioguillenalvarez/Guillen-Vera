@@ -238,13 +238,12 @@ a.card{text-decoration:none;color:inherit}
 @view-transition{navigation:auto}
 ::view-transition-group(*){animation-duration:.55s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
 @media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
-select.chip{appearance:none;-webkit-appearance:none;color:var(--ink);font-family:var(--body);padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat}
-select.chip[aria-pressed="true"]{background-color:var(--ink);color:var(--bg)}
 .desde{font-family:var(--body);font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin-right:6px;vertical-align:middle}
 /* tipologías de proyecto */
 /* mapa */
 .mapa{height:clamp(240px,40vw,380px);border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--soft);z-index:0}
-.mapa .leaflet-control-attribution{font-size:10px}
+.mapa iframe{width:100%;height:100%;border:0;display:block}
+.mapa-abrir{justify-self:start}
 /* solicitud de visita */
 dialog.visita{border:0;padding:0;border-radius:24px;width:min(560px,calc(100% - 24px));max-height:calc(100% - 24px);background:var(--bg);color:var(--ink);box-shadow:0 40px 120px -30px rgba(0,0,0,.45)}
 dialog.visita::backdrop{background:var(--scrim);backdrop-filter:blur(4px)}
@@ -363,3 +362,5 @@ dialog.visita form,dialog.visita .vok{padding:24px;display:grid;gap:14px}
 
 .show-s{display:none}
 @media (max-width:560px){.show-s{display:inline}}
+.chip.mas{border-style:dashed;color:var(--muted)}
+.chip.mas:hover{color:var(--ink);border-style:solid}
