@@ -166,8 +166,8 @@ footer{border-top:1px solid var(--line);padding-block:28px 48px;color:var(--mute
 .dbar{position:sticky;top:0;z-index:3;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .dbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:10px}
 .mosaic{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:8px;height:clamp(260px,52vw,520px);border-radius:18px;overflow:hidden;margin-top:20px}
-.mosaic .ph:first-child{grid-row:span 2}
-@media (max-width:700px){.mosaic{grid-template-columns:1fr 1fr;grid-template-rows:2fr 1fr}.mosaic .ph:first-child{grid-column:span 2;grid-row:auto}.mosaic .ph:nth-child(n+4){display:none}}
+.mosaic>:first-child{grid-row:span 2}
+@media (max-width:700px){.mosaic{grid-template-columns:1fr 1fr;grid-template-rows:2fr 1fr}.mosaic>:first-child{grid-column:span 2;grid-row:auto}.mosaic>:nth-child(n+4){display:none}}
 .dgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:48px;padding-block:32px 120px}
 @media (max-width:880px){.dgrid{grid-template-columns:minmax(0,1fr);gap:32px}}
 .dhead{display:grid;gap:10px}
@@ -305,7 +305,7 @@ dialog.visita form,dialog.visita .vok{padding:24px;display:grid;gap:14px}
 .mdet .spec div{border-color:color-mix(in srgb,var(--ink) 10%,transparent)}
 .macc{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
 @media (prefers-reduced-motion:no-preference){.entra{animation:fade .55s var(--ease)}}
-@media (max-width:520px){.dsel{grid-template-columns:1fr 1fr}.dcard{padding:16px}.dcard .dn{font-size:48px}.mprecio{justify-items:start;text-align:left}}
+@media (max-width:520px){.dsel{grid-template-columns:1fr}.dcard{grid-template-columns:40px 1fr;column-gap:16px;align-items:center;padding:14px 18px}.dcard .dn{font-size:52px;grid-row:span 4}.dcard .dp{margin-top:2px}.mprecio{justify-items:start;text-align:left}}
 
 /* Vende con nosotros */
 .v-hero{min-height:calc(100svh - 70px);display:grid;align-content:center;gap:24px;padding-block:40px}

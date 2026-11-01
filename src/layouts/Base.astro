@@ -54,7 +54,7 @@ const ogImage = image ? new URL(image, Astro.site).href : undefined;
       <span>{ajustes.marca} · Asesores inmobiliarios · Lima, Perú</span>
       <span style="display:flex;flex-wrap:wrap;gap:14px">
         {redes.map(([n, u]) => <a href={u} target="_blank" rel="noopener" style="color:inherit">{n}</a>)}
-        <span>Precios referenciales en dólares</span>
+        <span>Precios referenciales</span>
       </span>
     </footer>
 
