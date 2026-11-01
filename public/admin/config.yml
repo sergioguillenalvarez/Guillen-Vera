@@ -11,6 +11,17 @@ backend:
 locale: es
 media_folder: public/fotos
 public_folder: /fotos
+# Las fotos se achican y se convierten a WebP al subirlas (las del celular pesan 5–10 MB
+# y hacían fallar el guardado con "Failed to fetch").
+media_libraries:
+  default:
+    config:
+      transformations:
+        raster_image:
+          format: webp
+          quality: 82
+          width: 2000
+          height: 2000
 
 collections:
   - name: propiedades
