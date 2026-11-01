@@ -1,0 +1,31 @@
+---
+// Panel propio para subir y editar propiedades (reemplaza el uso diario de /admin).
+// Guarda directo en GitHub con el mismo token del panel clásico; Netlify publica solo.
+import '../styles/global.css';
+import '../styles/panel.css';
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <title>Panel · Guillen & Vera</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" />
+  </head>
+  <body class="pn">
+    <header class="pn-top">
+      <a class="brand" href="/panel">Guillen <i>&amp;</i> Vera <span class="pn-badge">Panel</span></a>
+      <div class="pn-acc" id="acciones"></div>
+    </header>
+    <main id="app" class="pn-main"><p class="pn-cargando">Cargando…</p></main>
+    <div class="pn-toast" id="toast" role="status" hidden></div>
+    <script>
+      import '../panel/app';
+    </script>
+  </body>
+</html>

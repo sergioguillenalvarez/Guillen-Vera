@@ -39,7 +39,7 @@ collections:
       - { name: operacion, label: Operación, widget: select, options: [Venta, Alquiler], default: Venta }
       - { name: estado, label: Estado, widget: select, options: [Disponible, Oportunidad, Vendida, Alquilada], default: Disponible }
       - { name: distrito, label: Distrito, widget: select, options: [Miraflores, Barranco, San Isidro, Surquillo, Magdalena, Lince, Santiago de Surco, San Borja, La Molina, Jesús María, Pueblo Libre, San Miguel, Chorrillos, Lima Cercado, Breña, La Victoria, Rímac, San Juan de Miraflores, Villa María del Triunfo, Villa El Salvador, Ate, Santa Anita, El Agustino, San Juan de Lurigancho, Los Olivos, San Martín de Porres, Independencia, Comas, Carabayllo, Puente Piedra, Cieneguilla, Pachacámac, Lurín, Punta Hermosa, Punta Negra, San Bartolo, Asia, Callao, Bellavista, La Perla, La Punta], hint: "Los seis primeros son Lima Top y salen primero en la web." }
-      - { name: tipo, label: Tipo, widget: select, options: [Departamento, Dúplex, Flat, Loft, Penthouse, Casa, Oficina, Terreno], default: Departamento }
+      - { name: tipo, label: Tipo, widget: select, options: [Departamento, Dúplex, Flat, Loft, Penthouse, Casa, Local comercial, Oficina, Almacén, Terreno], default: Departamento }
       - { name: moneda, label: Moneda, widget: select, options: [{ label: "Dólares (US$)", value: USD }, { label: "Soles (S/)", value: PEN }], default: USD }
       - { name: precio, label: "Precio (en alquiler, el monto mensual). En proyectos déjalo vacío: se toma el más bajo de las tipologías", widget: number, value_type: int, required: false }
       - { name: precio_anterior, label: "Precio anterior (US$, solo para oportunidades)", widget: number, value_type: int, required: false }

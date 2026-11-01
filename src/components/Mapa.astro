@@ -1,36 +1,20 @@
 ---
-// Mapa con un círculo de unos 350 m alrededor de un punto ya desplazado: orienta sobre la zona sin revelar la dirección.
+// Mapa de Google con la zona aproximada. El punto ya viene desplazado 120–200 m de la
+// dirección real (ver ubicacionAproximada), así el mapa orienta sin revelar la casa.
 interface Props { lat: number; lng: number; distrito: string; referencia?: string | null }
 const { lat, lng, distrito, referencia } = Astro.props;
+const ll = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+const src = `https://maps.google.com/maps?q=${ll}&z=15&hl=es&output=embed`;
+const abrir = `https://www.google.com/maps/search/?api=1&query=${ll}`;
+// "A 3 cuadras de la estación…" se lee mejor como ", a 3 cuadras…" que como "cerca de A 3 cuadras…"
+const ref = referencia?.trim();
+const refTxt = !ref ? '' : /^(a|al|frente|junto|entre|cerca)\b/i.test(ref) ? `, ${ref.charAt(0).toLowerCase()}${ref.slice(1)}` : `, cerca de ${ref}`;
 ---
 <div class="block">
   <h2 style="font-family:var(--display);font-size:34px">Ubicación</h2>
-  <div class="mapa" id="mapa" data-lat={lat} data-lng={lng} role="img" aria-label={`Zona aproximada en ${distrito}`}></div>
-  <p class="note">Zona aproximada en {distrito}{referencia ? `, cerca de ${referencia}` : ''}. La dirección exacta se comparte al coordinar la visita.</p>
+  <div class="mapa">
+    <iframe src={src} title={`Zona aproximada en ${distrito}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+  </div>
+  <p class="note">Zona aproximada en {distrito}{refTxt}. La dirección exacta se comparte al coordinar la visita.</p>
+  <a class="pillbtn mapa-abrir" href={abrir} target="_blank" rel="noopener">Abrir en Google Maps</a>
 </div>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-<script>
-  const el = document.getElementById('mapa');
-  if (el) {
-    const iniciar = () => {
-      const L = (window as any).L;
-      if (!L) return setTimeout(iniciar, 150);
-      const centro = [Number(el.dataset.lat), Number(el.dataset.lng)];
-      const oscuro = matchMedia('(prefers-color-scheme: dark)').matches;
-      const mapa = L.map(el, {
-        center: centro, zoom: 15, minZoom: 12, maxZoom: 16,
-        scrollWheelZoom: false, dragging: !L.Browser.mobile, attributionControl: true,
-      });
-      L.tileLayer(`https://{s}.basemaps.cartocdn.com/${oscuro ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`, {
-        attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd',
-      }).addTo(mapa);
-      L.circle(centro, { radius: 350, color: '#FF6A3D', weight: 1.5, fillColor: '#FFB443', fillOpacity: 0.18 }).addTo(mapa);
-    };
-    // se carga solo cuando el mapa está por aparecer en pantalla
-    new IntersectionObserver((es, io) => {
-      if (es.some((e) => e.isIntersecting)) { io.disconnect(); iniciar(); }
-    }, { rootMargin: '300px' }).observe(el);
-  }
-</script>
