@@ -61,7 +61,7 @@ const estadoTexto = d.estado === 'Vendida' ? ` · Vendida${d.dias_en_vender ? ` 
           {proyecto
             ? <div class="kfacts">
                 <div><b>{enumerar(tips.map((t) => t.dormitorios))}</b><span>dormitorios</span></div>
-                <div><b>{rango(tips.map((t) => t.area))} m²</b><span>áreas</span></div>
+                <div><b>{rango(tips.flatMap((t) => [t.area, t.area_max ?? t.area]))} m²</b><span>áreas</span></div>
                 <div><b>{tips.length}</b><span>modelos</span></div>
                 {(d.etapa || d.entrega) && <div><b>{d.etapa === 'Entrega inmediata' ? 'Inmediata' : d.entrega || d.etapa}</b><span>entrega</span></div>}
               </div>

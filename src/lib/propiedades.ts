@@ -121,7 +121,7 @@ export function enumerar(nums: number[]) {
 }
 
 export function rango(nums: number[]) {
-  const min = Math.min(...nums), max = Math.max(...nums);
+  const min = Math.round(Math.min(...nums)), max = Math.round(Math.max(...nums));
   return min === max ? `${min}` : `${min}–${max}`;
 }
 

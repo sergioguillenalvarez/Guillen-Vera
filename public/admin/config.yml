@@ -83,6 +83,8 @@ collections:
           - { name: plano, label: Plano, widget: image, required: false }
           - { name: banos, label: Baños, widget: number, value_type: float, required: false }
           - { name: cochera, label: "Cocheras incluidas (0 si no tiene)", widget: number, value_type: int, required: false }
+          - { name: cochera_texto, label: "Cochera: texto libre (ej. Opcional, con depósito, precio aparte)", widget: string, required: false }
+          - { name: incluye, label: "Incluye (ej. Estudio · cocina integrada · walk-in closet)", widget: string, required: false }
           - { name: dormitorios, label: "Dormitorios (sin hoja)", widget: number, value_type: int, required: false }
           - { name: area, label: "Área m² (sin hoja)", widget: number, value_type: float, required: false }
           - { name: precio, label: "Precio desde (sin hoja)", widget: number, value_type: int, required: false }

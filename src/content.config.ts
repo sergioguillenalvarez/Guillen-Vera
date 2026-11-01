@@ -58,6 +58,8 @@ const propiedades = defineCollection({
       unidades: z.number().optional().nullable(),
       agotada: no,
       cochera: z.number().optional().nullable(),
+      cochera_texto: z.string().optional().nullable(),
+      incluye: z.string().optional().nullable(),
       vista: z.string().optional().nullable(),
       plano: z.string().optional().nullable(),
       fotos: lista,

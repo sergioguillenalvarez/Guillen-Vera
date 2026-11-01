@@ -46,6 +46,7 @@ const unico = grupos.length === 1;
               <span class="mimg">{img ? <img src={encodeURI(img)} alt="" loading="lazy" /> : <span>{t.modelo ?? t.nombre?.slice(-1)}</span>}</span>
               <b>{t.nombre}</b>
               <small>{areaTxt(t)} m²{vistaTxt(t).length ? ` · ${vistaTxt(t).length > 1 ? `${vistaTxt(t).length} vistas` : vistaTxt(t)[0]}` : ''}</small>
+              {t.incluye && <small>{t.incluye}</small>}
               <span class="mp">Desde {dinero(t.precio, d.moneda)}</span>
             </button>
           );
@@ -73,7 +74,8 @@ const unico = grupos.length === 1;
               <div><span>Área</span><b>{areaTxt(t)} m²</b></div>
               <div><span>Dormitorios</span><b>{t.dormitorios || 'Estudio'}</b></div>
               {t.banos && <div><span>Baños</span><b>{t.banos}</b></div>}
-              <div><span>Cochera</span><b>{t.cochera ? (t.cochera === 1 ? 'Incluye 1' : `Incluye ${t.cochera}`) : 'No incluye'}</b></div>
+              <div><span>Cochera</span><b>{t.cochera_texto || (t.cochera ? `Incluye ${t.cochera}` : 'No incluye')}</b></div>
+              {t.incluye && <div><span>Incluye</span><b>{t.incluye}</b></div>}
               {vistaTxt(t).length > 0 && <div><span>Vista</span><b>{vistaTxt(t).join(' · ')}</b></div>}
               {t.pisos && <div><span>Pisos disponibles</span><b>{t.pisos}</b></div>}
               {d.ascensor && <div><span>Ascensor</span><b>{d.ascensor}</b></div>}
