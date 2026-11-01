@@ -43,7 +43,7 @@ const ogImage = image ? new URL(image, Astro.site).href : undefined;
       <a class="brand" href="/" style="color:inherit;text-decoration:none">{marcaB ? <>{marcaA} <i>&amp;</i> {marcaB}</> : marcaA}</a>
       <div class="navlinks">
         <a class="pillbtn hide-s" href="/#preguntas">Preguntas</a>
-        <a class="pillbtn hide-s" href="/#propietarios">Vende con nosotros</a>
+        <a class="pillbtn" href="/vende/"><span class="hide-s">Vende con nosotros</span><span class="show-s">Vende</span></a>
         <a class="pillbtn solid" href={waLink(principal.whatsapp)} target="_blank" rel="noopener"><WaIcon />WhatsApp</a>
       </div>
     </div></nav>
@@ -54,7 +54,7 @@ const ogImage = image ? new URL(image, Astro.site).href : undefined;
       <span>{ajustes.marca} · Asesores inmobiliarios · Lima, Perú</span>
       <span style="display:flex;flex-wrap:wrap;gap:14px">
         {redes.map(([n, u]) => <a href={u} target="_blank" rel="noopener" style="color:inherit">{n}</a>)}
-        <span>Precios referenciales en dólares</span>
+        <span>Precios referenciales</span>
       </span>
     </footer>
 

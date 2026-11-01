@@ -92,7 +92,8 @@ const numero = (s: string) => {
 export function limpiarVista(v: string) {
   const menores = new Set(['de', 'la', 'del', 'el', 'y', 'al', 'a', 'las', 'los']);
   return v
-    .replace(/^\s*vista\s+/i, '')
+    .replace(/^\s*vista\s+(a\s+)?/i, '')
+    .replace(/\brep\.?(?=\s*(\/|$))/i, 'República')
     .split('/')
     .map((parte) => parte.trim().toLowerCase().split(/\s+/)
       .map((w, i) => (i && menores.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(' '))

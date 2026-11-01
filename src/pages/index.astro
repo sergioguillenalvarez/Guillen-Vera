@@ -63,7 +63,7 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
     </div>
 
     <section class="stats">
-      <div class="stat reveal"><b data-n={vendidas.length}>{vendidas.length}</b><span>propiedades vendidas</span></div>
+      {vendidas.length > 0 && <div class="stat reveal"><b data-n={vendidas.length}>{vendidas.length}</b><span>propiedad{vendidas.length === 1 ? ' vendida' : 'es vendidas'}</span></div>}
       {promedio > 0 && <div class="stat reveal"><b data-n={promedio}>{promedio}</b><span>días promedio hasta la venta</span></div>}
       <div class="stat reveal"><b data-n={asesores.length}>{asesores.length}</b><span>{asesores.length > 1 ? 'marcas personales difundiendo cada propiedad' : 'marca personal difundiendo cada propiedad'}</span></div>
       <div class="stat reveal"><b data-n="6">6</b><span>distritos donde trabajamos</span></div>
@@ -77,7 +77,7 @@ const [linea1, ...resto] = ajustes.nombre_catalogo.split(' ');
         <div><b>{asesores.length > 1 ? 'Varias audiencias a la vez' : 'Redes y cartera a la vez'}</b><p>La publicamos en el TikTok e Instagram de {nombresAsesores}, y en esta cartera que reciben nuestros clientes e inversionistas.</p></div>
         <div><b>Interesados que llegan decididos</b><p>Quien nos escribe ya vio todo. Llega a WhatsApp listo para visitar y negociar, no a preguntar lo básico.</p></div>
       </div>
-      <a class="pillbtn" href={waLink(principal.whatsapp, 'Hola, quiero vender mi propiedad')} target="_blank" rel="noopener">Quiero vender mi propiedad →</a>
+      <a class="pillbtn" href="/vende/">Mira cómo trabajamos tu propiedad →</a>
     </div></section>
 
     <section class="faq" id="preguntas">

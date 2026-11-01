@@ -1,0 +1,242 @@
+---
+// "Vende con nosotros": presentación tipo lanzamiento para propietarios + formulario que termina en WhatsApp.
+import Base from '../layouts/Base.astro';
+import { ajustes, asesores, nombresAsesores } from '../lib/marca';
+import { PRIORITARIOS, OTROS } from '../data/distritos';
+
+const dos = asesores.length > 1;
+const manifiesto = 'No publicamos tu propiedad. La lanzamos, la mostramos a la gente correcta y la acompañamos hasta la firma.';
+
+const capitulos = [
+  { n: '01', t: 'Un precio que se defiende.', p: 'Antes de publicar preparamos un informe de valor con ventas y ofertas comparables de tu zona. Sales al mercado con un precio que puedes sostener en cualquier negociación.' },
+  { n: '02', t: 'Producción de lanzamiento.', p: 'Fotos cuidadas, un video vertical para TikTok y Reels, y un recorrido completo. Tu propiedad se ve como se ve un estreno.' },
+  { n: '03', t: dos ? 'Dos marcas. El doble de alcance.' : 'Una marca que la empuja.', p: `La publicamos en el TikTok e Instagram de ${nombresAsesores} y la impulsamos con anuncios segmentados por zona e interés. Llegamos a quien compra, no solo a quien mira.` },
+  { n: '04', t: 'Su propia página.', p: 'Una ficha en esta web con video, precio y situación legal, lista para compartir. Nunca tu nombre, tu teléfono ni la dirección exacta: solo una zona aproximada.' },
+  { n: '05', t: 'Visitas que valen la pena.', p: 'Antes de visitar, cada interesado nos deja su DNI y cómo piensa pagar. Si alquilas, revisamos su sustento de ingresos. A tu puerta solo llega gente que puede cerrar.' },
+  { n: '06', t: 'Contigo hasta la firma.', p: 'Revisamos la partida en SUNARP, coordinamos el levantamiento de hipoteca si la hay y te acompañamos a la notaría. Y en todo el camino recibes reportes de visitas y opiniones.' },
+];
+const pasos = ['Conversamos', 'Valuamos', 'Producimos', 'Lanzamos', 'Filtramos visitas', 'Firmamos'];
+const privado = ['Tu nombre y tu teléfono', 'La dirección exacta', 'Tus documentos y partida', 'El precio mínimo que aceptarías'];
+---
+<Base title="Vende o alquila con nosotros" description={`Así trabajamos tu propiedad: valuación con datos, video profesional y ${dos ? 'dos marcas personales' : 'una marca personal'} difundiéndola.`}>
+  <article class="vende">
+    <!-- 1. Apertura -->
+    <header class="v-hero wrap">
+      <div class="eyebrow">Para propietarios</div>
+      <h1>
+        <span class="line"><span>Tu propiedad,</span></span>
+        <span class="line"><span><i>contada como se merece.</i></span></span>
+      </h1>
+      <p class="sub">Vende o alquila con un precio respaldado por datos, una producción de estreno y {dos ? 'dos marcas personales' : 'una marca personal'} empujándola todos los días.</p>
+      <div class="sub v-hero-cta">
+        <a class="pillbtn solid" href="#cuentanos">Quiero vender o alquilar</a>
+        <a class="pillbtn" href="#capitulos">Ver cómo trabajamos ↓</a>
+      </div>
+    </header>
+
+    <!-- 2. Manifiesto: las palabras se encienden al hacer scroll -->
+    <section class="v-mani" aria-label="Manifiesto">
+      <div class="v-mani-in wrap">
+        <p>{manifiesto.split(' ').map((w) => <span class="w">{w} </span>)}</p>
+      </div>
+    </section>
+
+    <!-- 3. Capítulos -->
+    <section class="v-caps wrap" id="capitulos">
+      {capitulos.map((c, i) => (
+        <div class={`v-cap reveal${i % 2 ? ' alt' : ''}`}>
+          <span class="v-num" aria-hidden="true">{c.n}</span>
+          <div>
+            <h2>{c.t}</h2>
+            <p>{c.p}</p>
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <!-- 4. El camino -->
+    <section class="v-ruta wrap reveal" aria-label="El proceso">
+      <div class="eyebrow">El camino</div>
+      <h2 class="v-h2">Seis pasos. Cero sorpresas.</h2>
+      <ol class="v-pasos">
+        {pasos.map((p, i) => <li style={`--i:${i}`}><b>{i + 1}</b><span>{p}</span></li>)}
+      </ol>
+    </section>
+
+    <!-- 5. Privacidad -->
+    <section class="v-priv">
+      <div class="wrap v-priv-in reveal">
+        <div>
+          <div class="eyebrow">Lo que nunca se publica</div>
+          <h2 class="v-h2">Tu propiedad es pública.<br /><i>Tú no.</i></h2>
+        </div>
+        <ul>{privado.map((x) => <li>{x}</li>)}</ul>
+      </div>
+    </section>
+
+    <!-- 6. Formulario -->
+    <section class="v-form wrap" id="cuentanos">
+      <div class="v-form-head reveal">
+        <div class="eyebrow">Empecemos</div>
+        <h2 class="v-h2">Cuéntanos de tu propiedad.</h2>
+        <p class="note">Toma un minuto. Al enviar se abre WhatsApp con todo listo para mandarlo.</p>
+      </div>
+
+      <form name="captacion-propiedad" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="fcapta" class="reveal">
+        <input type="hidden" name="form-name" value="captacion-propiedad" />
+        <p hidden><label>No llenar <input name="bot-field" /></label></p>
+
+        <fieldset class="v-grupo">
+          <legend>Tu propiedad</legend>
+          <div class="v-seg full" role="radiogroup" aria-label="¿Qué quieres hacer?">
+            <label><input type="radio" name="operacion" value="Vender" checked /> <span>Vender</span></label>
+            <label><input type="radio" name="operacion" value="Alquilar" /> <span>Alquilar</span></label>
+          </div>
+          <div class="vgrid">
+            <label>Tipo
+              <select name="tipo" required>
+                <option value="">Elige</option>
+                <option>Departamento</option><option>Casa</option><option>Dúplex o penthouse</option>
+                <option>Terreno</option><option>Local comercial</option><option>Oficina</option><option>Otro</option>
+              </select>
+            </label>
+            <label>Distrito
+              <select name="distrito" required>
+                <option value="">Elige</option>
+                <optgroup label="Lima Top">{PRIORITARIOS.map((d) => <option>{d}</option>)}</optgroup>
+                <optgroup label="Otros distritos">{OTROS.map((d) => <option>{d}</option>)}</optgroup>
+              </select>
+            </label>
+            <label class="full">Zona o referencia <small>(sin la dirección exacta)</small><input name="zona" placeholder="Ej. a dos cuadras del Parque Kennedy" /></label>
+            <label>Área aproximada (m²)<input name="area" inputmode="decimal" /></label>
+            <label>Dormitorios<input name="dormitorios" type="number" min="0" max="20" /></label>
+            <label>¿Tiene hipoteca?
+              <select name="hipoteca"><option>No</option><option>Sí</option><option>No estoy seguro</option></select>
+            </label>
+            <label><span data-precio-label>Precio que esperas</span> <small>(opcional)</small><input name="precio" placeholder="Ej. US$ 250,000" /></label>
+            <label class="full">Detalles <small>(opcional)</small><textarea name="detalles" rows="2" placeholder="Vista, cochera, remodelado, piso, lo que la hace especial…"></textarea></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="v-grupo">
+          <legend>Papeles</legend>
+          <div class="vgrid">
+            <label class="full">¿Quién es el propietario?
+              <select name="propiedad_de" required>
+                <option value="">Elige</option>
+                <option>Soy el único propietario</option>
+                <option>Somos varios (copropiedad o esposos)</option>
+                <option>Es una herencia (sucesión)</option>
+                <option>Represento al propietario</option>
+              </select>
+            </label>
+            <label class="full">¿Tienes los documentos en regla?
+              <select name="documentos" required>
+                <option value="">Elige</option>
+                <option>Sí, está inscrita en SUNARP y tengo todo</option>
+                <option>Tengo algunos documentos</option>
+                <option>No estoy seguro, necesito ayuda</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="v-grupo">
+          <legend>Tú</legend>
+          <div class="vgrid">
+            <label class="full">Nombres y apellidos<input name="nombre" required autocomplete="name" /></label>
+            <label>Celular (WhatsApp)<input name="celular" required inputmode="tel" pattern="[0-9 +]{9,15}" autocomplete="tel" /></label>
+            <label>DNI <small>(opcional)</small><input name="documento" inputmode="numeric" pattern="[0-9A-Za-z]{8,12}" title="8 dígitos para DNI, hasta 12 para carné de extranjería" /></label>
+          </div>
+          <p class="note">El DNI nos ayuda a revisar la partida en SUNARP antes de reunirnos. Si prefieres, nos lo das después.</p>
+        </fieldset>
+
+        {asesores.length > 1 ? (
+          <fieldset class="vasesor">
+            <legend>¿Con quién quieres hablar?</legend>
+            {asesores.map((a, i) => (
+              <label><input type="radio" name="asesor" value={a.nombre} data-wa={a.whatsapp} checked={i === 0} required /><span class="av">{a.nombre[0]}</span><b>{a.nombre}</b></label>
+            ))}
+          </fieldset>
+        ) : (
+          <input type="hidden" name="asesor" value={asesores[0]?.nombre} data-wa={asesores[0]?.whatsapp} />
+        )}
+
+        <label class="check"><input type="checkbox" name="consentimiento" value="Sí" required /> Acepto que {ajustes.marca} use estos datos solo para evaluar mi propiedad y contactarme (Ley 29733).</label>
+        <button type="submit" class="pillbtn solid v-enviar">Enviar por WhatsApp</button>
+        <p class="note v-ok" hidden>Listo. Si WhatsApp no se abrió, <a href="#" data-wa-final target="_blank" rel="noopener">tócalo aquí</a>.</p>
+      </form>
+    </section>
+  </article>
+
+  <script>
+    // Manifiesto: cada palabra se enciende según el avance del scroll dentro de la sección
+    const mani = document.querySelector<HTMLElement>('.v-mani');
+    const palabras = mani ? [...mani.querySelectorAll<HTMLElement>('.w')] : [];
+    if (mani && palabras.length) {
+      const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducido) palabras.forEach((w) => w.classList.add('on'));
+      else {
+        let pend = false;
+        const pintar = () => {
+          pend = false;
+          const r = mani.getBoundingClientRect();
+          const total = mani.offsetHeight - innerHeight;
+          const p = Math.min(1, Math.max(0, -r.top / Math.max(1, total)));
+          const n = Math.round(p * 1.15 * palabras.length);
+          palabras.forEach((w, i) => w.classList.toggle('on', i < n));
+        };
+        addEventListener('scroll', () => { if (!pend) { pend = true; requestAnimationFrame(pintar); } }, { passive: true });
+        pintar();
+      }
+    }
+
+    // Formulario → copia en Netlify + WhatsApp del asesor elegido con todo armado
+    const form = document.getElementById('fcapta') as HTMLFormElement | null;
+    if (form) {
+      const precioLabel = form.querySelector('[data-precio-label]')!;
+      form.addEventListener('change', (e) => {
+        const t = e.target as HTMLInputElement;
+        if (t.name === 'operacion') precioLabel.textContent = t.value === 'Alquilar' ? 'Alquiler mensual que esperas' : 'Precio que esperas';
+      });
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const datos = new FormData(form);
+        const g = (k: string) => String(datos.get(k) ?? '').trim();
+        const elegido = form.querySelector<HTMLInputElement>('input[name="asesor"]:checked, input[type="hidden"][name="asesor"]');
+        const asesor = g('asesor');
+        const op = g('operacion') === 'Alquilar' ? 'alquilar' : 'vender';
+        const lineas = [
+          `Hola ${asesor.split(' ')[0]}, soy ${g('nombre')}.`,
+          `Quiero ${op} mi ${g('tipo').toLowerCase()} en ${g('distrito')}${g('zona') ? ` (${g('zona')})` : ''}.`,
+          ' ',
+          g('area') && `• Área: ${g('area')} m²`,
+          g('dormitorios') && `• Dormitorios: ${g('dormitorios')}`,
+          `• Hipoteca: ${g('hipoteca')}`,
+          g('precio') && `• ${op === 'alquilar' ? 'Alquiler esperado' : 'Precio esperado'}: ${g('precio')}`,
+          `• Propietario: ${g('propiedad_de')}`,
+          `• Documentos: ${g('documentos')}`,
+          g('detalles') && `• Detalles: ${g('detalles')}`,
+          ' ',
+          `• Celular: ${g('celular')}`,
+          g('documento') && `• DNI: ${g('documento')}`,
+          ' ',
+          '¿Cuándo podemos conversar?',
+        ].filter(Boolean).map((l) => String(l).trim()).join('\n');
+        const url = `https://wa.me/${elegido?.dataset.wa ?? ''}?text=${encodeURIComponent(lineas)}`;
+
+        fetch('/', {
+          method: 'POST',
+          keepalive: true,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(datos as any).toString(),
+        }).catch(() => {});
+
+        const ok = form.querySelector<HTMLElement>('.v-ok')!;
+        ok.querySelector<HTMLAnchorElement>('[data-wa-final]')!.href = url;
+        ok.hidden = false;
+        location.href = url;
+      });
+    }
+  </script>
+</Base>

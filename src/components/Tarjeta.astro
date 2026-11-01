@@ -30,7 +30,7 @@ const tips = proyecto ? (tipologiasDisponibles(d).length ? tipologiasDisponibles
       {d.precio_anterior && <> <s style="font-size:18px;color:var(--muted)">{dinero(d.precio_anterior, d.moneda)}</s></>}
     </div>
     {proyecto
-      ? <div class="cfacts"><b>{enumerar(tips.map((t) => t.dormitorios))}</b> dorm<span class="sep">|</span><b>{rango(tips.map((t) => t.area))}</b> m²<span class="sep">|</span><b>{tips.length}</b> modelo{tips.length === 1 ? '' : 's'}</div>
+      ? <div class="cfacts"><b>{enumerar(tips.map((t) => t.dormitorios))}</b> dorm<span class="sep">|</span><b>{rango(tips.flatMap((t) => [t.area, t.area_max ?? t.area]))}</b> m²<span class="sep">|</span><b>{tips.length}</b> modelo{tips.length === 1 ? '' : 's'}</div>
       : <div class="cfacts">{d.dormitorios != null && <><b>{d.dormitorios}</b> dorm<span class="sep">|</span></>}{d.banos != null && <><b>{d.banos}</b> baños<span class="sep">|</span></>}{d.area_techada != null && <><b>{d.area_techada}</b> m²</>}{d.cocheras > 0 && <><span class="sep">|</span><b>{d.cocheras}</b> coch</>}</div>}
     {enDolares(precioBase(d), d) && <div class="caddr">{enDolares(precioBase(d), d)}</div>}
     <div class="caddr">{proyecto ? `Proyecto · ${d.distrito}` : `${d.tipo} · ${d.distrito}`}</div>
