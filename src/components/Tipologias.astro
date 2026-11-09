@@ -19,10 +19,13 @@ const dormTxt = (n: number) => (n === 0 ? 'Estudio' : `${n} dormitorio${n === 1 
 const areaTxt = (t: (typeof tips)[number]) => (t.area_max && t.area_max !== t.area ? `${t.area}–${t.area_max}` : `${t.area}`);
 const vistaTxt = (t: (typeof tips)[number]) => (t.vistas.length ? t.vistas : t.vista ? [t.vista] : []);
 const unico = grupos.length === 1;
+// Fecha en que se leyó la hoja de precios (cada vez que se publica la web)
+const leida = d.hoja_precios ? new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'long', year: 'numeric' }) : null;
 ---
 <section class="block psel" id="tipologias">
   <div class="eyebrow">Elige tu departamento</div>
   <h2 class="ptitle">¿Cuántos dormitorios necesitas?</h2>
+  {leida && <p class="note">Precios de lista y disponibilidad actualizados al {leida}.</p>}
 
   <div class="dsel" role="group" aria-label="Dormitorios">
     {grupos.map((g) => (
