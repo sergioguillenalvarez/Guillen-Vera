@@ -83,8 +83,12 @@ export function parseCsv(texto: string): string[][] {
 }
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// "S/ 598,960.00", "S/.525,381.00", "US$ 120,000", "70.66" → número.
+// Ojo: "S/." pega un punto antes de la cifra; por eso se toma solo el primer número.
 const numero = (s: string) => {
-  const n = Number(String(s).replace(/[^\d.]/g, ''));
+  const m = String(s).replace(/\s/g, '').match(/\d[\d,]*(?:\.\d+)?/);
+  if (!m) return null;
+  const n = Number(m[0].replace(/,/g, ''));
   return isFinite(n) && n > 0 ? n : null;
 };
 

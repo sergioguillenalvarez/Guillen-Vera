@@ -1,12 +1,20 @@
-# Reconstruye la web todos los días a las 5:00 a. m. (hora de Lima),
-# así las propiedades con exclusividad vencida desaparecen solas.
-# Requiere el secreto NETLIFY_BUILD_HOOK (ver README).
-name: Reconstruir web cada día
+# Vuelve a publicar la web tres veces al día (6:00, 13:00 y 19:00, hora de Lima).
+# Así los precios y la disponibilidad de los proyectos se leen de nuevo de la hoja de
+# Google y las propiedades con exclusividad vencida desaparecen solas.
+#
+# Si existe el secreto NETLIFY_BUILD_HOOK se usa ese gancho. Si no, se guarda la fecha
+# en src/data/publicado.json: cualquier cambio en main hace que Netlify publique.
+name: Reconstruir web
 
 on:
   schedule:
-    - cron: "0 10 * * *"
+    - cron: "0 11 * * *"
+    - cron: "0 18 * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   reconstruir:
@@ -16,8 +24,18 @@ jobs:
         env:
           HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
         run: |
-          if [ -z "$HOOK" ]; then
-            echo "Falta el secreto NETLIFY_BUILD_HOOK; no se reconstruye."
-            exit 0
+          if [ -n "$HOOK" ]; then
+            curl -fsS -X POST -d '{}' "$HOOK"
+            echo "usado=hook" >> "$GITHUB_ENV"
           fi
-          curl -fsS -X POST -d '{}' "$HOOK"
+      - uses: actions/checkout@v4
+        if: env.usado != 'hook'
+      - name: Publicar con un cambio mínimo (sin gancho de Netlify)
+        if: env.usado != 'hook'
+        run: |
+          echo "{ \"publicado\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" }" > src/data/publicado.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add src/data/publicado.json
+          git commit -m "Actualiza precios de los proyectos (automático)"
+          git push
